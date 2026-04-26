@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Output gerado
+output/
+
+# Arquivos temporários e de log do ATP
+*.tmp
+*.pl4
+*.lis
+*.dbg
+*.pch
+*.acp
+atp_stdout.txt
+atp_stderr.txt
+debug*.lis
+
+# IDE / ferramentas
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
