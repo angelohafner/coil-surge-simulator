@@ -1,0 +1,30 @@
+\section{Visão geral do projeto}
+
+O projeto implementa um simulador de resposta a surto em bobina distribuída. A ideia central é substituir o enrolamento contínuo por uma cadeia de seções concentradas, cada uma contendo resistência, indutância e capacitância para terra. Essa discretização permite estudar fenômenos de alta frequência que um modelo puramente concentrado perderia, como atraso de propagação, reflexões na extremidade aberta e distribuição não uniforme de tensão.
+
+A pasta \codefile{config} contém o caso base em \codefile{default\_case.json}. A pasta \codefile{src} contém o modelo elétrico, a fonte, o solver, o processamento de resultados e a visualização. A pasta \codefile{output} contém os CSVs, PNGs e GIFs já gerados. O arquivo \codefile{surto\_bobina.atp} descreve um caso ATP com a mesma lógica física do modelo Pi: \Nsec{} ramos série R--L, capacitores shunt para terra e uma fonte dupla exponencial aplicada no nó de entrada.
+
+Os resultados numéricos são exportados como tensões nodais, correntes de seção e um resumo com picos de tensão e gradientes. Os resultados visuais incluem curvas de entrada/saída, curvas em nós selecionados, mapas de calor posição-tempo, barras de pico por nó, barras de gradiente entre nós adjacentes e animações da onda viajante.
+
+\begin{table}[H]
+\centering
+\caption{Parâmetros principais do caso padrão em \codefile{config/default\_case.json}.}
+\label{tab:parametros-caso}
+\begin{tabular}{lll}
+\toprule
+Parâmetro & Valor & Interpretação elétrica \\
+\midrule
+\codefile{n\_sections} & 20 & número de seções discretas \\
+\codefile{L\_total} & \SI{0.01}{H} & indutância total da bobina \\
+\codefile{R\_total} & \SI{5}{\ohm} & perdas série totais \\
+\codefile{C\_total} & \SI{1e-9}{F} & capacitância total para terra \\
+\codefile{model\_type} & \codefile{pi} & topologia Pi principal \\
+\codefile{source\_type} & \codefile{double\_exp} & impulso dupla exponencial \\
+\codefile{V\_amplitude} & \SI{1000}{V} & pico nominal da fonte \\
+\codefile{t\_front} & \SI{1.2}{\micro\second} & tempo de frente \\
+\codefile{t\_tail} & \SI{50}{\micro\second} & tempo de cauda \\
+\codefile{dt} & \SI{10}{ns} & passo de amostragem dos resultados \\
+\codefile{termination} & \codefile{open} & extremidade aberta \\
+\bottomrule
+\end{tabular}
+\end{table}

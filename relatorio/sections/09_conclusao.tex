@@ -1,0 +1,7 @@
+\section{Conclusão}
+
+O projeto \projectpath{} implementa um estudo coerente de transitórios em uma bobina distribuída. A implementação Python permite montar a rede em espaço de estados, resolver a resposta no tempo, exportar grandezas numéricas e gerar visualizações que deixam visível a propagação do surto. O arquivo \codefile{surto\_bobina.atp} representa o mesmo caso principal em uma linguagem de simulação EMT consolidada, reforçando a correspondência física entre o circuito e o sistema de EDOs.
+
+Do ponto de vista de engenharia elétrica, os resultados mostram que a bobina não pode ser tratada como elemento concentrado quando excitada por uma frente de \SI{1.2}{\micro\second}. A onda de tensão percorre o enrolamento, reflete na saída aberta e produz picos próximos de duas vezes a tensão de entrada. O gradiente entre seções é especialmente relevante porque se relaciona com a solicitação dielétrica local, não apenas com a tensão absoluta em relação ao terra.
+
+As figuras e animações confirmam que os modelos Pi e T entregam comportamento global semelhante para o caso estudado. A capacitância total, por outro lado, altera a forma da propagação e precisa ser tratada como parâmetro físico sensível. Como limitação, o modelo usa 20 seções e não inclui acoplamentos capacitivos/indutivos mais detalhados entre espiras ou discos, perdas dependentes de frequência, saturação magnética ou geometrias reais de enrolamento. Ainda assim, como ferramenta de estudo, ele captura os mecanismos essenciais de onda viajante, reflexão e distribuição não uniforme de tensão.

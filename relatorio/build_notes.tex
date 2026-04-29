@@ -1,0 +1,17 @@
+\section{Notas de construção do PDF}
+
+As figuras estáticas válidas usadas neste relatório foram copiadas de \codefile{E:\textbackslash surto-1\textbackslash output} para \codefile{figures/output}, com nomes normalizados por origem: prefixo \codefile{pi\_} para o modelo Pi, \codefile{t\_} para o modelo T e \codefile{atp\_} para as imagens associadas aos scripts ATP/Plotly.
+
+O arquivo \codefile{output/atp/screenshot.png} não foi usado no corpo do relatório porque a captura disponível não representa a simulação; ela mostra uma apresentação de slides. Por isso, a figura foi tratada como artefato inválido para a análise técnica.
+
+Os GIFs foram convertidos em frames PNG dentro de \codefile{frames}. Cada animação possui 75 frames, extraídos a \SI{5}{fps} e redimensionados para largura de 720 pixels. Essa escolha preserva o comportamento animado e evita que o PDF fique excessivamente grande. A animação no PDF depende de suporte do visualizador. Em leitores sem suporte a JavaScript/animações PDF, pode aparecer apenas um quadro estático.
+
+Comando usado para extrair frames:
+
+\begin{verbatim}
+ffmpeg -y -i <arquivo.gif> ^
+  -vf "fps=5,scale=720:-1:flags=lanczos" ^
+  frame-%03d.png
+\end{verbatim}
+
+Sistema bibliográfico usado: BibTeX com estilo \codefile{IEEEtran}.

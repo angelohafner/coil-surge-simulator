@@ -1,0 +1,32 @@
+\section{Correspondência entre Python e ATP}
+
+A Tabela~\ref{tab:python-atp} resume a correspondência entre o caso Python principal e o arquivo ATP. A principal diferença operacional é que o Python executa também cenários T, baixa capacitância e alta capacitância, enquanto o arquivo \codefile{surto\_bobina.atp} está focado no caso Pi.
+
+\begin{table}[H]
+\centering
+\caption{Correspondência entre o modelo Python principal e o caso ATP.}
+\label{tab:python-atp}
+\begin{tabular}{p{0.27\linewidth}p{0.31\linewidth}p{0.31\linewidth}}
+\toprule
+Item & Python & ATP \\
+\midrule
+Topologia principal & Pi, com opção T & Pi \\
+Número de seções & 20 & 20 \\
+Resistência total & \SI{5}{\ohm} & \SI{5}{\ohm} \\
+Resistência por seção & \SI{0.25}{\ohm} & \SI{0.25}{\ohm} \\
+Indutância total & \SI{0.01}{H} & \SI{0.01}{H} \\
+Indutância por seção & \SI{5e-4}{H} & \SI{5e-4}{H} \\
+Capacitância total & \SI{1e-9}{F} & \SI{1e-9}{F} \\
+Capacitância interna & \SI{50}{pF} & \SI{5e-5}{\micro F} = \SI{50}{pF} \\
+Capacitância extrema & \SI{25}{pF} no Pi & \SI{2.5e-5}{\micro F} = \SI{25}{pF} \\
+Fonte & dupla exponencial normalizada & fonte tipo 14 dupla exponencial \\
+Tempo de frente & \SI{1.2}{\micro\second} & parametrizado por \(\beta=\SI{2.5e6}{s^{-1}}\) \\
+Tempo de cauda & \SI{50}{\micro\second} & parametrizado por \(\alpha=\SI{13863}{s^{-1}}\) \\
+Passo de amostragem & \SI{1e-8}{s} & \SI{1e-8}{s} \\
+Nós observados & todos os nós em CSV/figuras & \(N0,N5,N10,N15,N20\) \\
+Terminação & aberta no caso base & aberta em \(N20\) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A comparação também destaca uma diferença útil: o Python oferece acesso direto a todas as tensões nodais e correntes de seção, facilitando mapas de calor e gradientes. O ATP, por sua vez, representa uma ferramenta reconhecida para estudos EMT e permite validar o circuito em uma linguagem de simulação elétrica consolidada \cite{atpdrawhelp,long1990}.

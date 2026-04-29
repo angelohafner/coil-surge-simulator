@@ -1,0 +1,35 @@
+\section{Modelo elétrico da bobina distribuída}
+
+Em baixas frequências, uma bobina pode ser aproximada por uma indutância e uma resistência equivalentes. Em um surto rápido, essa simplificação é limitada: a capacitância do enrolamento para terra e a distribuição espacial de indutância e resistência passam a determinar como a tensão se reparte ao longo da bobina. Por isso o projeto usa uma aproximação de parâmetros distribuídos, semelhante ao tratamento de linhas por seções discretas \cite{greenwood1991}.
+
+No caso base, os parâmetros totais são divididos em \Nsec{} seções:
+
+\begin{align}
+R_{\mathrm{sec}} &= \frac{R_{\mathrm{total}}}{N} = \frac{5}{20} = \SI{0.25}{\ohm},\\
+L_{\mathrm{sec}} &= \frac{L_{\mathrm{total}}}{N} = \frac{0.01}{20} = \SI{0.5}{mH},\\
+C_{\mathrm{sec}} &= \frac{C_{\mathrm{total}}}{N} = \frac{10^{-9}}{20} = \SI{50}{pF}.
+\end{align}
+
+Na topologia Pi, os capacitores de extremidade aparecem como \(\Csec/2\), enquanto os nós internos possuem \(\Csec\), resultado da soma das duas meias capacitâncias das seções vizinhas. A Figura~\ref{fig:circuito-pi} mostra essa representação.
+
+\input{figures/circuito_tikz}
+
+Do ponto de vista físico, o ramo \(R-L\) armazena energia magnética e dissipa parte dela em resistência, enquanto o capacitor para terra armazena energia elétrica. A interação entre esses armazenamentos faz com que a perturbação de tensão não apareça instantaneamente em toda a bobina: ela se propaga como onda. A impedância de surto aproximada do conjunto é:
+
+\begin{equation}
+\Zsurge = \sqrt{\frac{L_{\mathrm{total}}}{C_{\mathrm{total}}}}
+       = \sqrt{\frac{0.01}{10^{-9}}}
+       \approx \SI{3162}{\ohm}.
+\end{equation}
+
+Uma estimativa de tempo de propagação associada ao par \(L_{\mathrm{total}}, C_{\mathrm{total}}\) é:
+
+\begin{equation}
+\Ttravel = \sqrt{L_{\mathrm{total}}C_{\mathrm{total}}}
+         = \sqrt{0.01\cdot 10^{-9}}
+         \approx \SI{3.16}{\micro\second}.
+\end{equation}
+
+A saída está em circuito aberto. Para uma onda incidente, essa condição implica corrente terminal nula e tende a produzir reflexão de tensão com mesmo sinal. A duplicação aproximada do pico na extremidade aberta é coerente com os resultados numéricos: a tensão de entrada atinge \SI{1000}{V}, enquanto a saída chega a cerca de \SI{2039}{V}. Esse valor não é uma simples regra ideal, porque a rede discreta, a resistência e a forma temporal do impulso modificam a resposta.
+
+O modelo T, também implementado no projeto, desloca a capacitância de cada seção para um ponto intermediário. Em termos de engenharia, Pi e T são aproximações discretas diferentes de uma mesma estrutura distribuída. A comparação entre eles ajuda a avaliar se a interpretação física depende fortemente da topologia numérica escolhida.

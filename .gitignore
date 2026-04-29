@@ -7,8 +7,22 @@ venv/
 env/
 *.egg-info/
 
-# Output gerado
-output/
+# Output gerado pelo simulador
+/output/
+
+# Artefatos temporários de LaTeX
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.synctex.gz
+relatorio/preview_*.png
 
 # Arquivos temporários e de log do ATP
 *.tmp

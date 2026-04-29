@@ -1,0 +1,17 @@
+\section{Arquivo ATP}
+
+O arquivo \codefile{surto\_bobina.atp} descreve um caso de transitório eletromagnético no formato ATP. O ATP é uma variante do EMTP voltada a simulações no domínio do tempo em sistemas elétricos, incluindo elementos RLC, fontes, chaves, linhas e equipamentos de potência \cite{atpdrawhelp}. A origem histórica do EMTP está associada ao trabalho de Dommel e ao desenvolvimento na Bonneville Power Administration \cite{dommel1969,emtp_history}. Programas EMTP são amplamente usados para surtos de manobra, descargas atmosféricas, coordenação de isolamento e outros eventos rápidos \cite{long1990}.
+
+O cabeçalho do arquivo ATP documenta o caso: bobina distribuída, impulso 1.2/50 us, escada Pi com \Nsec{} seções, \(L_{\mathrm{total}}=\SI{10}{mH}\), \(R_{\mathrm{total}}=\SI{5}{\ohm}\), \(C_{\mathrm{total}}=\SI{1}{nF}\), fonte dupla exponencial de \SI{1}{kV} e terminação aberta. As opções \codefile{XOPT = 0} e \codefile{COPT = 0}, registradas nos comentários, indicam o tratamento das unidades de indutância e capacitância dentro do caso.
+
+A seção de dados de simulação define \(\Delta t=\SI{1e-8}{s}\) e \(T_{\max}=\SI{2e-4}{s}\). Esse tempo máximo é maior que o \codefile{t\_total} do caso Python principal, mas o passo de amostragem é o mesmo. A malha R--L possui 20 ramos série, de \SI{0.25}{\ohm} e \SI{5e-4}{H} cada. Os capacitores shunt são de \SI{5e-5}{\micro F}, equivalentes a \SI{50}{pF}, nos nós internos, e \SI{2.5e-5}{\micro F}, equivalentes a \SI{25}{pF}, nos extremos.
+
+A fonte ATP é do tipo 14, com a forma:
+
+\begin{equation}
+V(t) = A_1\left(e^{-A_2 t} - e^{-A_3 t}\right).
+\end{equation}
+
+No arquivo, \(A_1=\SI{1035.1}{V}\), \(A_2=\SI{13863}{s^{-1}}\) e \(A_3=\SI{2.5e6}{s^{-1}}\). O fator \(A_1\) já incorpora a normalização para que o pico fique próximo de \SI{1}{kV}. A seção de saída solicita tensões nos nós \(N0\), \(N5\), \(N10\), \(N15\) e \(N20\), correspondendo à entrada, 25\%, 50\%, 75\% e saída aberta da bobina.
+
+Em termos de engenharia elétrica, o arquivo ATP é uma referência independente do modelo Python: ele monta explicitamente o circuito no formato de um programa EMT, enquanto o Python monta as equações de estado diretamente. A convergência conceitual entre os dois aumenta a confiança de que o estudo representa o mesmo fenômeno físico.

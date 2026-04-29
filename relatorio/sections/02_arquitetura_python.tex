@@ -1,0 +1,29 @@
+\section{Arquitetura Python}
+
+O arquivo \codefile{main.py} é o ponto de entrada do simulador. Ele carrega a configuração, cria a fonte de impulso, instancia o modelo de bobina, resolve as equações diferenciais, salva CSVs e gera figuras e GIFs. O mesmo script executa quatro cenários: modelo Pi, modelo T, baixa capacitância e alta capacitância. Essa escolha torna o projeto útil não apenas para produzir um caso único, mas para comparar como a topologia e a capacitância afetam a propagação do surto.
+
+\codefile{src/models/distributed\_coil.py} concentra a formulação elétrica. Para o modelo Pi, o estado é composto pelas tensões dos nós internos e de saída, além das correntes de cada ramo série. As derivadas são calculadas por KCL nos capacitores e KVL nos ramos R--L. Para o modelo T, cada seção possui um nó intermediário capacitivo e correntes de junção; isso desloca os pontos de observação para o meio das seções e explica por que os vetores de posição do modelo T possuem mais pontos.
+
+\codefile{src/sources/impulse\_source.py} define a fonte de tensão. A implementação oferece a onda dupla exponencial, usada no caso base, e uma alternativa rampa-exponencial. \codefile{src/solvers/time\_domain\_solver.py} usa \codefile{scipy.integrate.solve\_ivp} com o método RK45. A documentação do SciPy descreve esse método como uma rotina para problemas de valor inicial, com controle adaptativo de erro por fórmulas Runge--Kutta embutidas \cite{scipy_solve_ivp}.
+
+\codefile{src/utils/result\_processor.py} calcula grandezas derivadas importantes para engenharia: pico de tensão por nó, maior diferença de tensão entre nós adjacentes, tensão de entrada, tensão de saída e relação de transferência. \codefile{src/visualization/plot\_generator.py} transforma esses dados em PNGs estáticos. \codefile{src/visualization/gif\_generator.py} gera animações da onda de tensão, mapas de calor animados e comparações entre cenários.
+
+Os scripts auxiliares \codefile{run\_atp.py}, \codefile{simulate\_direct.py} e \codefile{save\_images.py} servem como ponte com o caso ATP e com visualizações adicionais. \codefile{run\_atp.py} tenta executar o ATP, ler o arquivo binário \codefile{.pl4} e gerar gráficos Plotly. \codefile{simulate\_direct.py} implementa diretamente a escada Pi de 20 seções equivalente ao ATP, enquanto \codefile{save\_images.py} salva imagens PNG da resposta por nós selecionados.
+
+\begin{table}[H]
+\centering
+\caption{Fluxo de execução do simulador Python.}
+\label{tab:fluxo-python}
+\begin{tabular}{p{0.23\linewidth}p{0.67\linewidth}}
+\toprule
+Etapa & Função técnica \\
+\midrule
+Configuração & Lê parâmetros físicos, temporais e de saída em JSON. \\
+Fonte & Gera a excitação transitória aplicada ao nó de entrada. \\
+Modelo & Monta a rede Pi ou T por seções distribuídas. \\
+Solver & Resolve o sistema de EDOs no domínio do tempo. \\
+Processamento & Calcula picos, gradientes e relação de transferência. \\
+Visualização & Produz PNGs e GIFs para interpretar a onda viajante. \\
+\bottomrule
+\end{tabular}
+\end{table}

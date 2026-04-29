@@ -1,0 +1,59 @@
+\section{Análise das figuras estáticas}
+
+Esta seção interpreta as figuras PNG válidas encontradas em \codefile{E:\textbackslash surto-1\textbackslash output} e subpastas. A leitura prioriza o significado elétrico dos resultados: propagação da onda, reflexão na saída aberta, amortecimento resistivo, distribuição espacial de tensão e solicitação dielétrica entre seções. Estudos de enrolamentos sob transitórios destacam que as sobretensões internas dependem da propagação de ondas eletromagnéticas e da distribuição capacitiva/indutiva do enrolamento \cite{furgal2020,ari2025}.
+
+O arquivo \codefile{output/atp/screenshot.png} foi excluído do corpo do relatório porque a imagem disponível não corresponde a uma saída da simulação ATP/Plotly; ela mostra uma captura de tela de uma apresentação e não contém o resultado elétrico analisado. As figuras ATP válidas usadas aqui são \codefile{grafico\_overlay.png} e \codefile{grafico\_subplots.png}.
+
+\subsection{Figuras do modelo Pi geradas pelo simulador principal}
+
+\staticfigure{0.92}{pi_io_voltage.png}{Tensão de entrada e tensão de saída no modelo Pi. A curva de entrada representa a fonte aplicada ao nó inicial; a curva de saída mostra a resposta no terminal aberto. O pico de saída próximo de duas vezes a entrada é coerente com a reflexão de tensão em circuito aberto, embora modificado por perdas e discretização.}{fig:pi-io}
+
+A Figura~\ref{fig:pi-io} mostra a grandeza tensão em volts no eixo vertical e tempo em microssegundos no eixo horizontal. O ponto de maior interesse elétrico é a elevação da tensão de saída acima da tensão aplicada. Como a corrente terminal deve ser nula no circuito aberto, a onda refletida soma tensão no extremo, aumentando a solicitação de isolamento perto de \(N_{20}\).
+
+\staticfigure{0.92}{pi_section_voltages.png}{Tensões em nós selecionados do modelo Pi. As curvas em posições distribuídas mostram o atraso de chegada do surto, a deformação da frente e as oscilações posteriores causadas por reflexões sucessivas.}{fig:pi-section}
+
+Na Figura~\ref{fig:pi-section}, as curvas de diferentes posições evidenciam que a bobina não se comporta como um único nó equipotencial durante o transitório. A frente de onda aparece primeiro na entrada e depois nas posições internas. Esse atraso é essencial para avaliar a distribuição instantânea da tensão ao longo do enrolamento.
+
+\staticfigure{0.86}{pi_max_voltage.png}{Pico absoluto de tensão por nó no modelo Pi. A figura quantifica a solicitação máxima local ao longo da bobina.}{fig:pi-max}
+
+A Figura~\ref{fig:pi-max} usa posição ao longo da bobina em porcentagem no eixo horizontal e pico de tensão em volts no eixo vertical. O resultado indica elevação progressiva dos picos em direção à saída aberta. A leitura de engenharia é direta: regiões próximas ao terminal aberto podem ficar mais exigidas durante reflexões, mesmo quando a fonte nominal é de apenas \SI{1}{kV}.
+
+\staticfigure{0.86}{pi_gradient.png}{Maior diferença absoluta de tensão entre nós adjacentes no modelo Pi. Esta grandeza é uma aproximação discreta da solicitação dielétrica entre seções vizinhas.}{fig:pi-gradient}
+
+A Figura~\ref{fig:pi-gradient} é uma das mais importantes para isolamento. Enquanto o pico por nó indica nível absoluto, o gradiente entre seções indica onde a queda de tensão local é maior. O maior valor aparece perto da entrada, associado à frente rápida do impulso e ao carregamento inicial das capacitâncias próximas ao terminal energizado.
+
+\staticfigure{0.94}{pi_heatmap.png}{Mapa posição-tempo da tensão no modelo Pi. A cor representa tensão em volts, o eixo horizontal representa tempo e o eixo vertical representa posição ao longo da bobina.}{fig:pi-heatmap}
+
+A Figura~\ref{fig:pi-heatmap} condensa a propagação espacial e temporal. Faixas inclinadas indicam a onda viajando pela bobina; mudanças de sinal e retorno de padrões mostram reflexões. Esse tipo de visualização é particularmente útil porque transforma uma matriz de tensões nodais em uma leitura quase espacial do transitório.
+
+\subsection{Figuras do modelo T}
+
+\staticfigure{0.92}{t_io_voltage.png}{Tensão de entrada e saída no modelo T. A resposta terminal preserva o mesmo fenômeno dominante do modelo Pi: amplificação por reflexão na extremidade aberta.}{fig:t-io}
+
+A Figura~\ref{fig:t-io} permite comparar a resposta terminal do modelo T com a do modelo Pi. Como ambos representam a mesma bobina distribuída por redes equivalentes, a tensão de saída permanece próxima de \SI{2}{kV}. Pequenas diferenças de forma podem surgir porque os pontos capacitivos no modelo T ficam no meio das seções.
+
+\staticfigure{0.92}{t_section_voltages.png}{Tensões em pontos selecionados do modelo T. Os pontos de observação correspondem a posições de meia seção, além dos terminais.}{fig:t-section}
+
+Na Figura~\ref{fig:t-section}, o deslocamento dos pontos de observação faz com que a distribuição temporal seja ligeiramente diferente da do modelo Pi. Ainda assim, a física principal continua sendo a propagação da frente, a reflexão na saída e as oscilações amortecidas.
+
+\staticfigure{0.86}{t_max_voltage.png}{Pico absoluto de tensão por ponto observado no modelo T.}{fig:t-max}
+
+A Figura~\ref{fig:t-max} mostra picos muito próximos aos do caso Pi. Isso sugere que, para os parâmetros adotados, a conclusão sobre sobretensão terminal não depende fortemente da escolha entre Pi e T.
+
+\staticfigure{0.86}{t_gradient.png}{Maior diferença absoluta de tensão entre pontos adjacentes no modelo T.}{fig:t-gradient}
+
+A Figura~\ref{fig:t-gradient} deve ser lida com cuidado: os pontos do modelo T não estão exatamente nas mesmas posições do Pi. Ainda assim, o gráfico é útil para verificar onde o modelo T concentra maiores diferenças de tensão. O resultado reforça a importância do início do enrolamento e das regiões de maior variação espacial.
+
+\staticfigure{0.94}{t_heatmap.png}{Mapa posição-tempo da tensão no modelo T.}{fig:t-heatmap}
+
+A Figura~\ref{fig:t-heatmap} confirma visualmente que a onda percorre a bobina e retorna por reflexão. A comparação com a Figura~\ref{fig:pi-heatmap} indica que ambos os modelos descrevem o mesmo comportamento global, apesar de discretizarem a capacitância em pontos diferentes.
+
+\subsection{Figuras associadas ao caso ATP}
+
+\staticfigure{0.96}{atp_grafico_overlay.png}{Curvas sobrepostas dos nós \(N0\), \(N5\), \(N10\), \(N15\) e \(N20\) para a escada Pi equivalente ao ATP. As tensões estão em kV e o tempo em microssegundos.}{fig:atp-overlay}
+
+A Figura~\ref{fig:atp-overlay} apresenta somente os nós solicitados no arquivo ATP. Ela funciona como uma visão comparável aos pontos de 0\%, 25\%, 50\%, 75\% e 100\% da bobina. A progressão das curvas mostra a chegada do surto em diferentes posições e a elevação no terminal aberto.
+
+\staticfigure{0.94}{atp_grafico_subplots.png}{Subplots individuais dos mesmos nós do caso ATP. A separação das curvas melhora a leitura de amplitude e defasagem temporal em cada posição.}{fig:atp-subplots}
+
+A Figura~\ref{fig:atp-subplots} é útil quando as curvas sobrepostas dificultam a leitura. Em termos de engenharia, os subplots permitem observar com mais clareza a distorção da forma de onda em cada ponto, incluindo o efeito das reflexões sucessivas.

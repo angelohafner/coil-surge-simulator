@@ -1,0 +1,7 @@
+\section{Resumo}
+
+Este relatório documenta o projeto Python em \projectpath, que simula a resposta de uma bobina distribuída quando submetida a um surto de tensão do tipo impulso atmosférico. O estudo combina três dimensões: o modelo físico de engenharia elétrica, a implementação numérica em Python e um caso equivalente em ATP/EMTP no arquivo \codefile{surto\_bobina.atp}.
+
+O caso base representa a bobina como uma escada Pi com \Nsec{} seções, resistência série total de \SI{5}{\ohm}, indutância total de \SI{0.01}{H} e capacitância total para terra de \SI{1e-9}{F}. A fonte de excitação é uma onda dupla exponencial ajustada para aproximadamente \SI{1}{kV} de pico, frente de \SI{1.2}{\micro\second} e cauda de \SI{50}{\micro\second}. Essa forma de impulso está associada a ensaios de alta tensão e a solicitações atmosféricas padronizadas \cite{kuffel2000,iec60060}.
+
+O foco técnico está na propagação da onda ao longo do enrolamento, nas reflexões produzidas pela terminação em circuito aberto, no amortecimento pela resistência série, na distribuição de tensão entre seções e nos gradientes que podem representar solicitação dielétrica local. A interpretação usa conceitos clássicos de transitórios eletromagnéticos e ondas viajantes \cite{greenwood1991}, além do contexto de simulação EMT/ATP \cite{dommel1969,long1990,atpdrawhelp}.
