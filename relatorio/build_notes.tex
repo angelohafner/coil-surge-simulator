@@ -1,8 +1,8 @@
 \section{Notas de construção do PDF}
 
-As figuras estáticas válidas usadas neste relatório foram copiadas de \codefile{E:\textbackslash surto-1\textbackslash output} para \codefile{figures/output}, com nomes normalizados por origem: prefixo \codefile{pi\_} para o modelo Pi, \codefile{t\_} para o modelo T e \codefile{atp\_} para as imagens associadas aos scripts ATP/Plotly.
+As figuras estáticas usadas neste relatório foram copiadas de \codefile{output/} (raiz do repositório) para \codefile{figures/output}, com nomes normalizados por origem: prefixo \codefile{pi\_} para o modelo Pi, \codefile{t\_} para o modelo T, \codefile{python\_} para as imagens Plotly geradas pelo simulador Python nos nós do caso ATP e \codefile{atp\_} \emph{exclusivamente} para figuras que contêm dados reais do ATP (hoje, a comparação quantitativa \codefile{atp\_comparacao\_python\_atp.png}, gerada por \codefile{scripts/compare\_python\_atp.py}). Na revisão de 12/06/2026, as antigas \codefile{atp\_grafico\_*.png} foram renomeadas para \codefile{python\_grafico\_*.png} por serem saída do simulador Python, não do ATP.
 
-O arquivo \codefile{output/atp/screenshot.png} não foi usado no corpo do relatório porque a captura disponível não representa a simulação; ela mostra uma apresentação de slides. Por isso, a figura foi tratada como artefato inválido para a análise técnica.
+Um antigo \codefile{output/atp/screenshot.png} não foi usado no corpo do relatório porque a captura disponível não representava a simulação (mostrava uma apresentação de slides); o arquivo foi removido de \codefile{output/} na revisão de 12/06/2026.
 
 Os GIFs foram convertidos em frames PNG dentro de \codefile{frames}. Cada animação possui 75 frames, extraídos a \SI{5}{fps} e redimensionados para largura de 720 pixels. Essa escolha preserva o comportamento animado e evita que o PDF fique excessivamente grande. A animação no PDF depende de suporte do visualizador. Em leitores sem suporte a JavaScript/animações PDF, pode aparecer apenas um quadro estático.
 

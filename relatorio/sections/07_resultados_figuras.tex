@@ -1,8 +1,8 @@
 \section{Análise das figuras estáticas}
 
-Esta seção interpreta as figuras PNG válidas encontradas em \codefile{E:\textbackslash surto-1\textbackslash output} e subpastas. A leitura prioriza o significado elétrico dos resultados: propagação da onda, reflexão na saída aberta, amortecimento resistivo, distribuição espacial de tensão e solicitação dielétrica entre seções. Estudos de enrolamentos sob transitórios destacam que as sobretensões internas dependem da propagação de ondas eletromagnéticas e da distribuição capacitiva/indutiva do enrolamento \cite{furgal2020,ari2025}.
+Esta seção interpreta as figuras PNG geradas em \codefile{output/} e subpastas. A leitura prioriza o significado elétrico dos resultados: propagação da onda, reflexão na saída aberta, amortecimento resistivo, distribuição espacial de tensão e solicitação dielétrica entre seções. Estudos de enrolamentos sob transitórios destacam que as sobretensões internas dependem da propagação de ondas eletromagnéticas e da distribuição capacitiva/indutiva do enrolamento \cite{furgal2020,ari2025}.
 
-O arquivo \codefile{output/atp/screenshot.png} foi excluído do corpo do relatório porque a imagem disponível não corresponde a uma saída da simulação ATP/Plotly; ela mostra uma captura de tela de uma apresentação e não contém o resultado elétrico analisado. As figuras ATP válidas usadas aqui são \codefile{grafico\_overlay.png} e \codefile{grafico\_subplots.png}.
+\paragraph{Nota de procedência.} As figuras \codefile{python\_grafico\_overlay.png} e \codefile{python\_grafico\_subplots.png} (antes nomeadas com prefixo \codefile{atp\_}) são geradas pelo \emph{simulador Python} via Plotly nos mesmos cinco nós observados no caso ATP — elas \emph{não} são saída do ATP. A única figura desta versão do relatório que contém dados reais do ATP é a comparação quantitativa da Seção~\ref{sec:validacao-quantitativa} (Figura~\ref{fig:atp-comparacao}). Um antigo \codefile{screenshot.png}, que mostrava uma apresentação de slides sem relação com a simulação, foi removido de \codefile{output/}.
 
 \subsection{Figuras do modelo Pi geradas pelo simulador principal}
 
@@ -48,12 +48,12 @@ A Figura~\ref{fig:t-gradient} deve ser lida com cuidado: os pontos do modelo T n
 
 A Figura~\ref{fig:t-heatmap} confirma visualmente que a onda percorre a bobina e retorna por reflexão. A comparação com a Figura~\ref{fig:pi-heatmap} indica que ambos os modelos descrevem o mesmo comportamento global, apesar de discretizarem a capacitância em pontos diferentes.
 
-\subsection{Figuras associadas ao caso ATP}
+\subsection{Figuras Plotly nos nós do caso ATP (geradas pelo simulador Python)}
 
-\staticfigure{0.96}{atp_grafico_overlay.png}{Curvas sobrepostas dos nós \(N0\), \(N5\), \(N10\), \(N15\) e \(N20\) para a escada Pi equivalente ao ATP. As tensões estão em kV e o tempo em microssegundos.}{fig:atp-overlay}
+\staticfigure{0.96}{python_grafico_overlay.png}{Curvas sobrepostas dos nós \(N0\), \(N5\), \(N10\), \(N15\) e \(N20\), \emph{geradas pelo simulador Python} (escada Pi, janela de \SI{200}{\micro\second}) nos mesmos nós observados no caso ATP. As tensões estão em kV e o tempo em microssegundos.}{fig:atp-overlay}
 
-A Figura~\ref{fig:atp-overlay} apresenta somente os nós solicitados no arquivo ATP. Ela funciona como uma visão comparável aos pontos de 0\%, 25\%, 50\%, 75\% e 100\% da bobina. A progressão das curvas mostra a chegada do surto em diferentes posições e a elevação no terminal aberto.
+A Figura~\ref{fig:atp-overlay} apresenta somente os nós solicitados no arquivo ATP. Ela funciona como uma visão comparável aos pontos de 0\%, 25\%, 50\%, 75\% e 100\% da bobina. A progressão das curvas mostra a chegada do surto em diferentes posições e a elevação no terminal aberto. A confrontação dessas curvas com a solução real do ATP está na Figura~\ref{fig:atp-comparacao}.
 
-\staticfigure{0.94}{atp_grafico_subplots.png}{Subplots individuais dos mesmos nós do caso ATP. A separação das curvas melhora a leitura de amplitude e defasagem temporal em cada posição.}{fig:atp-subplots}
+\staticfigure{0.94}{python_grafico_subplots.png}{Subplots individuais dos mesmos nós, \emph{gerados pelo simulador Python}. A separação das curvas melhora a leitura de amplitude e defasagem temporal em cada posição.}{fig:atp-subplots}
 
 A Figura~\ref{fig:atp-subplots} é útil quando as curvas sobrepostas dificultam a leitura. Em termos de engenharia, os subplots permitem observar com mais clareza a distorção da forma de onda em cada ponto, incluindo o efeito das reflexões sucessivas.

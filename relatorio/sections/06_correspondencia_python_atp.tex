@@ -1,4 +1,5 @@
 \section{Correspondência entre Python e ATP}
+\label{sec:correspondencia}
 
 A Tabela~\ref{tab:python-atp} resume a correspondência entre o caso Python principal e o arquivo ATP. A principal diferença operacional é que o Python executa também cenários T, baixa capacitância e alta capacitância, enquanto o arquivo \codefile{surto\_bobina.atp} está focado no caso Pi.
 
@@ -14,19 +15,56 @@ Topologia principal & Pi, com opção T & Pi \\
 Número de seções & 20 & 20 \\
 Resistência total & \SI{5}{\ohm} & \SI{5}{\ohm} \\
 Resistência por seção & \SI{0.25}{\ohm} & \SI{0.25}{\ohm} \\
-Indutância total & \SI{0.01}{H} & \SI{0.01}{H} \\
-Indutância por seção & \SI{5e-4}{H} & \SI{5e-4}{H} \\
-Capacitância total & \SI{1e-9}{F} & \SI{1e-9}{F} \\
+Indutância total & \SI{0.01}{H} & \SI{10}{mH} \\
+Indutância por seção & \SI{5e-4}{H} & \SI{0.5}{mH} (\codefile{XOPT=0} lê mH) \\
+Capacitância total & \SI{1e-9}{F} & \SI{1}{nF} \\
 Capacitância interna & \SI{50}{pF} & \SI{5e-5}{\micro F} = \SI{50}{pF} \\
 Capacitância extrema & \SI{25}{pF} no Pi & \SI{2.5e-5}{\micro F} = \SI{25}{pF} \\
-Fonte & dupla exponencial normalizada & fonte tipo 14 dupla exponencial \\
-Tempo de frente & \SI{1.2}{\micro\second} & parametrizado por \(\beta=\SI{2.5e6}{s^{-1}}\) \\
-Tempo de cauda & \SI{50}{\micro\second} & parametrizado por \(\alpha=\SI{13863}{s^{-1}}\) \\
-Passo de amostragem & \SI{1e-8}{s} & \SI{1e-8}{s} \\
+Fonte & dupla exponencial normalizada (pico \SI{1000.0}{V}) & tipo 15 dupla exponencial, \(A_1=\SI{1035.1}{V}\) (pico \(\approx\SI{999.97}{V}\)) \\
+Tempo de frente & \SI{1.2}{\micro\second} & parametrizado por \(B=\SI{-2.5e6}{s^{-1}}\) \\
+Tempo de cauda & \SI{50}{\micro\second} & parametrizado por \(A=\SI{-13863}{s^{-1}}\) \\
+Método de integração & RK45 adaptativo (\codefile{scipy}) & trapezoidal, passo fixo \\
+Janela simulada & \SI{50}{\micro\second} (caso base); \SI{200}{\micro\second} na comparação & \SI{200}{\micro\second} \\
+Passo de gravação & \SI{1e-8}{s} & \SI{1e-8}{s} (\codefile{IPLOT=1}) \\
 Nós observados & todos os nós em CSV/figuras & \(N0,N5,N10,N15,N20\) \\
 Terminação & aberta no caso base & aberta em \(N20\) \\
+Status & executado & \textbf{executado em 12/06/2026} (deck corrigido; ver \codefile{docs/evidencias\_atp\_falha/}) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-A comparação também destaca uma diferença útil: o Python oferece acesso direto a todas as tensões nodais e correntes de seção, facilitando mapas de calor e gradientes. O ATP, por sua vez, representa uma ferramenta reconhecida para estudos EMT e permite validar o circuito em uma linguagem de simulação elétrica consolidada \cite{atpdrawhelp,long1990}.
+\subsection{Validação quantitativa}
+\label{sec:validacao-quantitativa}
+
+A comparação numérica é gerada pelo script \codefile{scripts/compare\_python\_atp.py}, que executa o modelo Python na mesma janela do ATP (\SI{200}{\micro\second}), interpola o resultado do \codefile{.pl4} na grade de reporte do Python e calcula, por nó observado, os picos absolutos e os erros pontuais. A Tabela~\ref{tab:validacao-atp} resume os resultados; a Figura~\ref{fig:atp-comparacao} sobrepõe as curvas.
+
+\begin{table}[H]
+\centering
+\caption{Validação cruzada Python \(\times\) ATP por nó (janela de \SI{200}{\micro\second}). Erros percentuais referidos ao pico nominal da fonte (\SI{1}{kV}).}
+\label{tab:validacao-atp}
+\begin{tabular}{lrrrrr}
+\toprule
+Nó & Pico Python [V] & Pico ATP [V] & Dif.\ pico & \(\max|e|\) 0--30~\si{\micro s} & \(\max|e|\) 0--200~\si{\micro s} \\
+\midrule
+\(N0\)  & 1000{,}00 & 999{,}97  & \(+0{,}003\,\%\) & \SI{0.03}{V} (0{,}003\,\%) & \SI{0.03}{V} \\
+\(N5\)  & 1952{,}70 & 1953{,}25 & \(-0{,}028\,\%\) & \SI{8.26}{V} (0{,}83\,\%)  & \SI{53.4}{V} \\
+\(N10\) & 1995{,}65 & 1995{,}50 & \(+0{,}008\,\%\) & \SI{8.22}{V} (0{,}82\,\%)  & \SI{61.6}{V} \\
+\(N15\) & 2025{,}79 & 2026{,}06 & \(-0{,}013\,\%\) & \SI{10.77}{V} (1{,}08\,\%) & \SI{57.3}{V} \\
+\(N20\) & 2039{,}31 & 2039{,}43 & \(-0{,}006\,\%\) & \SI{10.78}{V} (1{,}08\,\%) & \SI{90.7}{V} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Três leituras de engenharia são relevantes:
+
+\begin{enumerate}
+\item \textbf{Picos por nó} — grandeza que governa a coordenação de isolamento — concordam dentro de \(0{,}03\,\%\) em todos os nós observados. Em particular, o pico no terminal aberto é \SI{2039.3}{V} (Python) contra \SI{2039.4}{V} (ATP).
+\item \textbf{Janela inicial (0--30~\si{\micro\second})}, que contém a frente de onda, a primeira reflexão e o máximo gradiente dielétrico, apresenta erro pontual máximo de \(1{,}1\,\%\) do pico nominal.
+\item \textbf{Janela completa (200~\si{\micro\second})}: o erro pontual cresce até \(9\,\%\) nas oscilações tardias. Isso é esperado e não indica divergência de modelo: o método trapezoidal de passo fixo do ATP acumula erro de fase nas componentes de alta frequência da escada (modo mais rápido com período \(\approx\SI{0.5}{\micro\second}\), cerca de 50 passos por período), enquanto o RK45 adaptativo controla o erro local; um pequeno desvio de fase em oscilações de grande amplitude produz diferenças pontuais elevadas mesmo com envelopes praticamente idênticos, como a Figura~\ref{fig:atp-comparacao} evidencia.
+\end{enumerate}
+
+\staticfigure{0.84}{atp_comparacao_python_atp.png}{Validação cruzada Python (RK45) \(\times\) ATP (trapezoidal) nos cinco nós observados, janela de \SI{200}{\micro\second}. As curvas praticamente coincidem; as diferenças pontuais tardias decorrem de deriva de fase numérica, não de divergência de modelo.}{fig:atp-comparacao}
+
+A fonte difere de forma sistemática em \(0{,}003\,\%\) porque o Python normaliza o pico exatamente em \SI{1000}{V} (constante \(K\) calculada), enquanto o deck usa \(A_1=\SI{1035.1}{V}\) fixo. Essa diferença é desprezível frente às diferenças de integração.
+
+A comparação também destaca uma diferença útil: o Python oferece acesso direto a todas as tensões nodais e correntes de seção, facilitando mapas de calor e gradientes. O ATP, por sua vez, é uma ferramenta consolidada para estudos EMT \cite{atpdrawhelp,long1990}; com o deck corrigido e executado, a concordância quantitativa acima dá suporte objetivo à afirmação de que ambos representam o mesmo fenômeno físico.

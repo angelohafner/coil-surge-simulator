@@ -23,6 +23,8 @@ env/
 *.toc
 *.synctex.gz
 relatorio/preview_*.png
+# PDF compilado: regenerável com latexmk -pdf relatorio.tex
+relatorio/relatorio.pdf
 
 # Arquivos temporários e de log do ATP
 *.tmp
