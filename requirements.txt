@@ -1,5 +1,17 @@
-numpy>=1.24.0
-scipy>=1.10.0
-matplotlib>=3.7.0
-imageio>=2.27.0
-Pillow>=9.5.0
+# Ambiente testado (Windows 11, Python 3.13.5) — auditoria/correção 12/06/2026.
+# Versões exatas para reprodutibilidade dos resultados numéricos do estudo.
+# Faixas mais frouxas (para uso como biblioteca) estão no pyproject.toml.
+
+# Núcleo da simulação (main.py + src/)
+numpy==2.4.2
+scipy==1.17.1
+matplotlib==3.10.8
+imageio==2.37.3
+Pillow==12.1.1
+
+# Scripts Plotly (scripts/plot_plotly.py, run_atp.py, scripts/compare_python_atp.py)
+plotly==6.6.0
+kaleido==1.2.0          # exportação de PNG pelo Plotly
+
+# Testes
+pytest==9.0.2

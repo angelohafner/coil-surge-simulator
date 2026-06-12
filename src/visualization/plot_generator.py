@@ -15,8 +15,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-from matplotlib.colors import Normalize
 
 _STYLE = {
     "figure.dpi": 150,
@@ -90,7 +88,8 @@ class PlotGenerator:
             np.round(np.linspace(0, n_nodes - 1, min(6, n_nodes))).astype(int)
         )
 
-        cmap = cm.get_cmap("plasma", len(indices))
+        # matplotlib.colormaps substitui cm.get_cmap (deprecado, remoção na 3.11)
+        cmap = matplotlib.colormaps["plasma"].resampled(len(indices))
         fig, ax = plt.subplots(figsize=(8, 4))
         for idx_i, node in enumerate(indices):
             pct = pos[node] * 100
@@ -132,12 +131,24 @@ class PlotGenerator:
         pos = self.drv["positions"]
         mid_pos = (pos[:-1] + pos[1:]) / 2 * 100   # midpoint between adjacent nodes [%]
 
+        # T model with open termination: the last gap (midpoint -> output)
+        # is structurally zero (both points share the same state variable),
+        # so it is omitted instead of plotted as a misleading zero bar.
+        cfg = self.res["config"]
+        note = ""
+        if cfg.model_type.lower() == "t" and cfg.termination.lower() == "open":
+            dV, mid_pos = dV[:-1], mid_pos[:-1]
+            note = "\n(last gap omitted: output node = last midpoint in open-circuit T)"
+
         fig, ax = plt.subplots(figsize=(8, 4))
         ax.bar(mid_pos, dV, width=100 / max(len(mid_pos), 1),
                color="orangered", edgecolor="darkred")
         ax.set_xlabel("Position along coil [%]")
         ax.set_ylabel("Peak |ΔV| between adjacent nodes [V]")
-        ax.set_title(f"Voltage Gradient between Adjacent Nodes — {self._model_label()}")
+        ax.set_title(
+            f"Voltage Gradient between Adjacent Nodes — {self._model_label()}{note}",
+            fontsize=10 if note else None,
+        )
         ax.set_xlim(-5, 105)
         ax.grid(axis="y")
         fig.tight_layout()
