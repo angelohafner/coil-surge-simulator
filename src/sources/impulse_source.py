@@ -23,6 +23,12 @@ Two waveform types are supported:
 
 import numpy as np
 
+# Relação empírica do coeficiente de frente da dupla exponencial:
+# beta ~= FRONT_COEFF / T1 reproduz o tempo de frente IEC T1 = 1,67*(t90-t30)
+# dentro das tolerâncias da IEC 60060-1 para o impulso 1,2/50 us
+# (verificado em tests/test_impulse_source.py: T1 = 1,193 us, desvio -0,6 %).
+FRONT_COEFF = 3.0
+
 
 class ImpulseSource:
     """Callable surge waveform.  Call instance with a scalar or array time."""
@@ -50,11 +56,12 @@ class ImpulseSource:
     # ------------------------------------------------------------------
 
     def _setup_double_exp(self):
-        # tail coefficient: 50 % decay at t_tail => alpha = ln2 / t_tail
+        # tail coefficient: the slow exponential alone decays 50 % at t_tail
+        # => alpha = ln2 / t_tail (the composite waveform's IEC half-value
+        # time comes out ~5 % longer; see README "Hipóteses")
         self.alpha = np.log(2.0) / self.t_tail
-        # front coefficient: empirical relation beta ≈ 3 / t_front
-        # (matches IEC 60060 1.2/50 µs within ±10 %)
-        self.beta = 3.0 / self.t_front
+        # front coefficient: empirical relation beta ≈ FRONT_COEFF / t_front
+        self.beta = FRONT_COEFF / self.t_front
 
         # normalisation: ensure peak == amplitude
         t_peak = np.log(self.beta / self.alpha) / (self.beta - self.alpha)
