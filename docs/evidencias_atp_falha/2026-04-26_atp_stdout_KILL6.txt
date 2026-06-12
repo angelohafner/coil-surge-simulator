@@ -1,0 +1,136 @@
+                               ATP Started at 16:42:20 on Sunday, 26 April 2026
+EMTP begins.  Send one of following alternatives.
+SPY, file_name, DISK, HELP, GO, KEY, STOP, BOTH, DIR:<Loaded from command line: "E:\surto-1\surto_bobina.atp">
+   ---   116   cards of disk file read into card cache cells  1   onward.
+ That was just for next subcase.   Remainder has  N22 =     2  cards.   MAXCRD = 30000
+ Comment card is ignored.      |C   LBUS  LBRNCH   LDATA   LEXCT   LYMAT  LSWTCH
+ 1st card (Lists  1-10).       |    6000   10000  192000     900  420000    120
+ Limit CIDEAL cards =   200    |CARDS        200 { Limit of CIDEAL will be 2 mor
+ Comment card is ignored.      |C LSMOUT  LSIZ12  LSIZ13  LBSTAC  LCTACS  LIMASS
+ 2nd card (Lists 11-20).       |     720    2000   72800     510   90000     80
+ Comment card is ignored.      |C    LFD   LHIST  LSIZ23   NCOMP  LSPCUM  LSIZ26
+ 3rd card (Lists 21-30).       |    3000   15000  192000     120   60000  16000
+ 4th card (Lists 31-32).       |     400     100     { Optional card for Lists
+ Comment card is ignored.      |C  LWORK  LMARTI
+ Supplemental offsets.         |  340000     742
+Alternative Transients Program (ATP),  GNU Linux or DOS.  All rights reserved by Can/Am user group of Portland, Oregon, USA.
+ Date (dd-mth-yy) and time of day (hh.mm.ss) = 26-Apr-26  16:42:20   Name of disk plot file is  e:\surto-1\surto_bobina.pl4
+Consult the 860-page ATP Rule Book of the Can/Am EMTP User Group in Portland,  Oregon, USA.  Source code date is 16 September 2005.
+Total size of LABCOM tables = 10223690 INTEGER words.  31 VARDIM  List Sizes follow:  6002  10K  192K  900  420K  1200  15K
+  120K  10K  20K  720  2K  72800  510  90K  800  90  254  120K  100K  3K  15K  192K  120  60K  160K  600  210K  300  60  400
+--------------------------------------------------+--------------------------------------------------------------------------------
+Descriptive interpretation of input data cards.   |  Input data card images are shown below, all 80 columns, character by character
+                                                  0         1         2         3         4         5         6         7         8
+                                                  012345678901234567890123456789012345678901234567890123456789012345678901234567890
+--------------------------------------------------+--------------------------------------------------------------------------------
+Comment card.   NUMDCD = 1.                       |C data:E:\SURTO-1\SURTO_BOBINA.ATP
+Marker card preceding new EMTP data case.         |BEGIN NEW DATA CASE
+Comment card.   NUMDCD = 3.                       |C ===================================================================
+Comment card.   NUMDCD = 4.                       |C  DISTRIBUTED COIL - SURGE (1.2/50 us) RESPONSE
+Comment card.   NUMDCD = 5.                       |C  Pi-ladder model, N = 20 sections
+Comment card.   NUMDCD = 6.                       |C  L_total = 10 mH | R_total = 5 ohm | C_total = 1 nF
+Comment card.   NUMDCD = 7.                       |C  Source: double-exponential 1.0 kVp  (IEC 60060 - 1.2/50 us)
+Comment card.   NUMDCD = 8.                       |C  Termination: open circuit
+Comment card.   NUMDCD = 9.                       |C ===================================================================
+Comment card.   NUMDCD = 10.                      |C
+Comment card.   NUMDCD = 11.                      |C  XOPT = 0  ->  inductances in H
+Comment card.   NUMDCD = 12.                      |C  COPT = 0  ->  capacitances in uF
+Comment card.   NUMDCD = 13.                      |C
+Comment card.   NUMDCD = 14.                      |C  Per section (N=20):
+Comment card.   NUMDCD = 15.                      |C    R_sec  = 0.25 ohm          (R_total / N)
+Comment card.   NUMDCD = 16.                      |C    L_sec  = 5.E-4 H  (0.5 mH) (L_total / N)
+Comment card.   NUMDCD = 17.                      |C  Shunt capacitance:
+Comment card.   NUMDCD = 18.                      |C    C_sec  = 5.E-5 uF  (50 pF)  (C_total / N)     internal nodes
+Comment card.   NUMDCD = 19.                      |C    C_sec2 = 2.5E-5 uF (25 pF)  (C_total / 2N)    end nodes N0, N20
+Comment card.   NUMDCD = 20.                      |C
+Comment card.   NUMDCD = 21.                      |C  Double-exponential source parameters (IEC 60060):
+Comment card.   NUMDCD = 22.                      |C    alpha = ln(2) / 50e-6  = 13863  s^-1   (50 us tail)
+Comment card.   NUMDCD = 23.                      |C    beta  = 3    / 1.2e-6  = 2.5e6  s^-1   (1.2 us front)
+Comment card.   NUMDCD = 24.                      |C    t_peak ~ 2.09 us
+Comment card.   NUMDCD = 25.                      |C    A1 = 1035.1 V  (= 1000 V / 0.9661, normalises peak to 1 kV)
+Comment card.   NUMDCD = 26.                      |C
+Comment card.   NUMDCD = 27.                      |C  Surge impedance: Z0 = sqrt(L/C) = sqrt(10e-3/1e-9) ~ 3162 ohm
+Comment card.   NUMDCD = 28.                      |C  Wave travel time (one-way): T = sqrt(L*C) ~ 3.16 us
+Comment card.   NUMDCD = 29.                      |C
+Comment card.   NUMDCD = 30.                      |C  Col ruler (branch cards):
+Comment card.   NUMDCD = 31.                      |C  1234567890123456789012345678901234567890123456789
+Comment card.   NUMDCD = 32.                      |C  TT BUS1  BUS2  F    R[ohm]    L[H]      C[uF]
+Comment card.   NUMDCD = 33.                      |C ===================================================================
+Comment card.   NUMDCD = 34.                      |C
+Comment card.   NUMDCD = 35.                      |C  dT [s]   Tmax [s]  Xopt  Copt  Epsiln   Tolmat   Tstart
+Misc. data.     1.000E-08   2.000E-04   0.000E+00 |   1.E-8   2.E-4      0.      0.   1.E-5   1.E-5     -1.
+Comment card.   NUMDCD = 37.                      |C  Iout  Iplot
+Misc. data.     10   10  0  0  0  0  0  0  0  0   |      10      10
+  >>>>  Even plot output frequency IPLOT is made odd by adding one.  Use  ALLOW EVEN PLOT FREQUENCY  to avoid this change.
+Comment card.   NUMDCD = 39.                      |C ===================================================================
+Comment card.   NUMDCD = 40.                      |C  BRANCH DATA
+Comment card.   NUMDCD = 41.                      |C ===================================================================
+Comment card.   NUMDCD = 42.                      |C
+Comment card.   NUMDCD = 43.                      |C  --- Series R-L branches (R_sec = 0.25 ohm, L_sec = 5E-4 H) ---
+Comment card.   NUMDCD = 44.                      |C
+ 
+------------------------------------------------------------------------------------------------------------------------------------
+ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/
+ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/
+------------------------------------------------------------------------------------------------------------------------------------
+You lose, fella.   The EMTP logic has detected an error condition, and is now going to terminate program execution.  The following
+message summarizes the circumstances leading to this situation.  Where an otherwise-unidentified data card is referred to, or where
+the "last" card is mentioned, it is the most recently read card of the input data that is meant.  The 80-column image of this card
+is generally the last one printed out prior to this termination message.  But possibly this last-read card has not yet been
+displayed, so a copy follows:
+ "   N0    N1          0.25     5.E-4                                             "
+              KILL code number                Overlay number               Nearby statement number
+                          6                          3                               4155
+KILL = 6.  The reference branch names of the last data card are illegal, since they do not point to a previously-inputted branch of
+the same type.  The data being referenced can not be found.  Check for spelling errors, or for possible position differences of
+blanks within the one or more name fields.  As read from columns 15-26 of the card in question, the missing branch is supposed to
+connect node  "      "  with node  " 0.25 ".
+------------------------------------------------------------------------------------------------------------------------------------
+ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/
+ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/ERROR/
+------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
+Memory storage figures for the preceding, now-completed data case.  -------------------------------  Present   Program
+A value of  "-9999"  indicates that no figure is available.         26-Apr-26  16:42:20              figure     limit  (name)
+     Size List 1.   Number of electric network nodes.                                                -9999      6000  (LBUS)
+     Size List 2.   Number of electric network branches.                                             -9999     10000  (LBRNCH)
+     Size List 3.   Number of data values in R, L, C tables.                                         -9999    192000  (LDATA)
+     Size List 4.   Number of electric network sources.                                              -9999       900  (LEXCT)
+     Size List 5.   Storage for [Y] and triangularized [Y].   No. times =    0     Factors =     0   -9999    420000  (LYMAT)
+     Size List 6.   Number of entries in switch table.                  No. flops = 0                -9999      1200  (LSWTCH)
+     Size List 7.   Number of distinct ALPHANUMERIC data names plus program SPY variables.           -9999     15000  (LSIZE7)
+     Size List 8.   History points of distributed lines.                                             -9999    120000  (LPAST)
+     Size List 9.   Number of nonlinear elements.                                                    -9999     10000  (LNONL)
+     Size List 10.  Points of nonlinear characteristics.                                             -9999     20000  (LCHAR)
+     Size List 11.  Number of Type-59 S.M. outputs.                                                  -9999       720  (LSMOUT)
+     Size List 12.  Total number of EMTP output variables.                                           -9999      2000  (LSIZ12)
+     Size List 13.  Working space for batch/SPY plotting.                                            -9999     72800  (LSIZ13)
+     Size List 14.  S.M./U.M. connections to TACS.                                                   -9999       510  (LBSTAC)
+     Size List 15.  Character storage in bytes for MODELS.                                           -9999     90000  (LCTACS)
+     Size List 16.  Total number of Type-59 S.M. masses.                                             -9999       800  (LIMASS)
+     Size List 17.  Number of Type-59 Synchronous machines.                                          -9999        90  (LSYN)
+     Size List 18.  Branch and switch power/energy outputs.                                          -9999       254  (MAXPE)
+     Size List 19.  Total floating-point TACS table space.                                              23    120000  (LTACST)
+     Size List 20.  Non-copied recursive convolution data.                                           -9999    100000  (LFSEM)
+     Size List 21.  Total modal/phase [T] matrix storage.                                            -9999      3000  (LFD)
+     Size List 22.  Total recursive convolution history.                                             -9999     15000  (LHIST)
+     Size List 23.  Giant vectors for renumbering, phasors.                                          -9999    192000  (LSIZ23)
+     Size List 24.  Peak phases of compensation for data.                                            -9999       120  (LCOMP)
+     Size List 25.  Total table space for all U.M usage.                                             -9999     60000  (LSPCUM)
+     Size List 26.  Square of max number of coupled phases.                                          -9999    160000  (LSIZ26)
+     Size List 28.  MODELS.  Total work space is divided into INTEGER and REAL.  1st, REAL:          -9999    210000  (LRTACS)
+                             Second  and last,  statistics for INTEGER work space.                       0         0  (LITACS)
+     Size List 29.  RAM disk used by "TAPSAV" table saving (limit is "LABCOM" size LTLABL).          -9999       300  (LSIZ29)
+     Size List 30.  Taku Noda frequency-dependent circuits.                                          -9999        19  (LSIZ30)
+Timing figures characterizing central processor (CP) solution speed.  ----------------------------   CP sec  Wait sec  Real sec
+     Data input time (through blank card ending branches) ....                                       0.000     0.000     0.000
+     Node renumbering and phasor solution  ....                                                      0.000     0.000     0.000
+     After phasor solution, but before time-step loop  ....                                          0.000     0.000     0.000
+     Integration of equations (time-step loop)  ....                                                 0.000     0.000     0.000
+     Plotting or STATISTICS termination overlays ....                                                0.000     0.000     0.000
+                                                                                                    ---------------------------
+                                                                                          Totals      0.000     0.000     0.000
+ 
+                              ATP Finished at 16:42:20 on Sunday, 26 April 2026
+                                      Total Execution Time was 0.00 cpu seconds

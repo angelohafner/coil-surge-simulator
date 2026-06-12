@@ -1,0 +1,5 @@
+  RFUNL1  has successfully connected unit 46.
+  RFUNL1  connects  DEBUG.LIS  file.  IPRSUP = -1  in  STARTUP  suppresses such output (see Jan, 96, newsletter).
+  GNU RFUNL1 defines SLOT1 =
+                                                                                                                                                                                                         
+                     KPARAM = 0

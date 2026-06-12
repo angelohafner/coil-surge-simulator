@@ -259,11 +259,57 @@ def _attempt(raw: bytes, endian: str, fmt: str):
     return time, data
 
 
+def _attempt_pisa(raw: bytes):
+    """
+    Formato 'PISA / C-like' gravado pelo GNU ATP (tpbigG.exe, ICAT=1).
+
+    Layout observado (validado contra surto_bobina.pl4, 2026-06-12):
+      [0:19]   data/hora ASCII, ex. '12-Jun-26  07:51:02'
+      [19:23]  int32 LE  = número de colunas de dados (tempo + nvar)
+      [43:47]  int32 LE  = tamanho do arquivo em bytes + 1  (validador)
+      [64:64+6*nvar]  nomes das variáveis em campos ASCII de 6 chars
+      [hdr:]   linhas float32 LE: (t, v1..v_nvar); hdr tipicamente 144,
+               localizado por varredura com validação do eixo de tempo
+               (t[0]=0, espaçamento uniforme e crescente).
+    """
+    if len(raw) < 200:
+        raise _PL4Error("curto para PISA")
+    ncols = struct.unpack_from("<i", raw, 19)[0]
+    if not 2 <= ncols <= 501:
+        raise _PL4Error(f"PISA ncols={ncols}")
+    fsz = struct.unpack_from("<i", raw, 43)[0]
+    if fsz != len(raw) + 1:
+        raise _PL4Error(f"PISA size={fsz} != {len(raw) + 1}")
+    nvar = ncols - 1
+    names = [
+        raw[64 + 6 * i: 64 + 6 * (i + 1)].decode("ascii", "replace").strip()
+        for i in range(nvar)
+    ]
+    rowbytes = 4 * ncols
+    for hdr in range(96, 513, 4):
+        rest = len(raw) - hdr
+        if rest <= rowbytes or rest % rowbytes:
+            continue
+        m = np.frombuffer(raw, dtype="<f4", offset=hdr,
+                          count=rest // 4).reshape(-1, ncols)
+        t = m[:, 0].astype(np.float64)
+        if t[0] != 0.0 or len(t) < 2:
+            continue
+        dt = np.diff(t)
+        if dt.min() <= 0 or not np.allclose(dt, dt[0], rtol=1e-3):
+            continue
+        data = {names[i]: m[:, i + 1].astype(np.float64).copy()
+                for i in range(nvar)}
+        return t.copy(), data
+    raise _PL4Error("PISA: nenhum offset de dados consistente")
+
+
 def read_pl4(filepath: str | pathlib.Path) -> tuple[np.ndarray, dict[str, np.ndarray]]:
     """
     Lê um arquivo .pl4 do ATP/EMTP.
 
-    Tenta automaticamente 8 combinações:
+    Tenta primeiro o formato PISA/C-like do GNU ATP e depois, automaticamente,
+    8 combinações:
         endianness  ×  formato de cabeçalho
         (LE, BE)    ×  (F32, F64, A, B)
 
@@ -276,6 +322,12 @@ def read_pl4(filepath: str | pathlib.Path) -> tuple[np.ndarray, dict[str, np.nda
     print(f"[PL4] {pathlib.Path(filepath).name}  ({len(raw):,} bytes)")
 
     errors: list[str] = []
+    try:
+        t, d = _attempt_pisa(raw)
+        print(f"[PL4] OK  fmt=PISA(GNU)  passos={len(t)}  vars={list(d.keys())}")
+        return t, d
+    except Exception as exc:
+        errors.append(f"  PISA: {exc}")
     for endian, elabel in [("<", "LE"), (">", "BE")]:
         for fmt in ("F32", "F64", "A", "B"):
             try:

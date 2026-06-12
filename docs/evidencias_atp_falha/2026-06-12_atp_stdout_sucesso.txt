@@ -1,0 +1,219 @@
+                                ATP Started at 07:51:02 on Friday, 12 June 2026
+EMTP begins.  Send one of following alternatives.
+SPY, file_name, DISK, HELP, GO, KEY, STOP, BOTH, DIR:<Loaded from command line: "D:\surto-1\surto_bobina.atp">
+   ---   121   cards of disk file read into card cache cells  1   onward.
+ That was just for next subcase.   Remainder has  N22 =     2  cards.   MAXCRD = 30000
+ Comment card is ignored.      |C   LBUS  LBRNCH   LDATA   LEXCT   LYMAT  LSWTCH
+ 1st card (Lists  1-10).       |    6000   10000  192000     900  420000    120
+ Limit CIDEAL cards =   200    |CARDS        200 { Limit of CIDEAL will be 2 mor
+ Comment card is ignored.      |C LSMOUT  LSIZ12  LSIZ13  LBSTAC  LCTACS  LIMASS
+ 2nd card (Lists 11-20).       |     720    2000   72800     510   90000     80
+ Comment card is ignored.      |C    LFD   LHIST  LSIZ23   NCOMP  LSPCUM  LSIZ26
+ 3rd card (Lists 21-30).       |    3000   15000  192000     120   60000  16000
+ 4th card (Lists 31-32).       |     400     100     { Optional card for Lists
+ Comment card is ignored.      |C  LWORK  LMARTI
+ Supplemental offsets.         |  340000     742
+Alternative Transients Program (ATP),  GNU Linux or DOS.  All rights reserved by Can/Am user group of Portland, Oregon, USA.
+ Date (dd-mth-yy) and time of day (hh.mm.ss) = 12-Jun-26  07:51:02   Name of disk plot file is  d:\surto-1\surto_bobina.pl4
+Consult the 860-page ATP Rule Book of the Can/Am EMTP User Group in Portland,  Oregon, USA.  Source code date is 16 September 2005.
+Total size of LABCOM tables = 10223690 INTEGER words.  31 VARDIM  List Sizes follow:  6002  10K  192K  900  420K  1200  15K
+  120K  10K  20K  720  2K  72800  510  90K  800  90  254  120K  100K  3K  15K  192K  120  60K  160K  600  210K  300  60  400
+--------------------------------------------------+--------------------------------------------------------------------------------
+Descriptive interpretation of input data cards.   |  Input data card images are shown below, all 80 columns, character by character
+                                                  0         1         2         3         4         5         6         7         8
+                                                  012345678901234567890123456789012345678901234567890123456789012345678901234567890
+--------------------------------------------------+--------------------------------------------------------------------------------
+Comment card.   NUMDCD = 1.                       |C data:D:\SURTO-1\SURTO_BOBINA.ATP
+Marker card preceding new EMTP data case.         |BEGIN NEW DATA CASE
+Comment card.   NUMDCD = 3.                       |C ===================================================================
+Comment card.   NUMDCD = 4.                       |C  DISTRIBUTED COIL - SURGE (1.2/50 us) RESPONSE
+Comment card.   NUMDCD = 5.                       |C  Pi-ladder model, N = 20 sections
+Comment card.   NUMDCD = 6.                       |C  L_total = 10 mH | R_total = 5 ohm | C_total = 1 nF
+Comment card.   NUMDCD = 7.                       |C  Source: double-exponential 1.0 kVp  (IEC 60060 - 1.2/50 us)
+Comment card.   NUMDCD = 8.                       |C  Termination: open circuit
+Comment card.   NUMDCD = 9.                       |C ===================================================================
+Comment card.   NUMDCD = 10.                      |C  REVISION 2026-06-12 (post-audit correction):
+Comment card.   NUMDCD = 11.                      |C   - Branch cards realigned to the fixed-column format
+Comment card.   NUMDCD = 12.                      |C     (R cols 27-32, L cols 33-38, C cols 39-44).  The original
+Comment card.   NUMDCD = 13.                      |C     deck failed with KILL=6 because R fell inside the BUS3/BUS4
+Comment card.   NUMDCD = 14.                      |C     reference-branch fields (cols 15-26).
+Comment card.   NUMDCD = 15.                      |C   - XOPT = 0 means inductance in mH (NOT henries, as the old
+Comment card.   NUMDCD = 16.                      |C     comment wrongly stated): L_sec = 0.5 mH is entered as 0.5.
+Comment card.   NUMDCD = 17.                      |C     The old card carried 5.E-4 intending henries, which ATP
+Comment card.   NUMDCD = 18.                      |C     would have read as 5.E-4 mH (1000x too small).
+Comment card.   NUMDCD = 19.                      |C   - Source card changed from type 14 (cosine source in ATP) to
+Comment card.   NUMDCD = 20.                      |C     type 15 (double-exponential surge function); the exponents
+Comment card.   NUMDCD = 21.                      |C     are entered as NEGATIVE values: A = -13863, B = -2.5E6.
+Comment card.   NUMDCD = 22.                      |C   - IPLOT = 1 so the .pl4 time grid (1E-8 s) matches the Python
+Comment card.   NUMDCD = 23.                      |C     reporting grid exactly; IOUT = 1000 keeps the .lis small.
+Comment card.   NUMDCD = 24.                      |C ===================================================================
+Comment card.   NUMDCD = 25.                      |C
+Comment card.   NUMDCD = 26.                      |C  XOPT = 0  ->  inductances in mH
+Comment card.   NUMDCD = 27.                      |C  COPT = 0  ->  capacitances in uF
+Comment card.   NUMDCD = 28.                      |C
+Comment card.   NUMDCD = 29.                      |C  Per section (N=20):
+Comment card.   NUMDCD = 30.                      |C    R_sec  = 0.25 ohm           (R_total / N)
+Comment card.   NUMDCD = 31.                      |C    L_sec  = 0.5 mH             (L_total / N)
+Comment card.   NUMDCD = 32.                      |C  Shunt capacitance:
+Comment card.   NUMDCD = 33.                      |C    C_sec  = 5.E-5 uF  (50 pF)  (C_total / N)     internal nodes
+Comment card.   NUMDCD = 34.                      |C    C_sec2 = 2.5E-5 uF (25 pF)  (C_total / 2N)    end nodes N0, N20
+Comment card.   NUMDCD = 35.                      |C
+Comment card.   NUMDCD = 36.                      |C  Double-exponential source parameters (IEC 60060):
+Comment card.   NUMDCD = 37.                      |C    alpha = ln(2) / 50e-6  = 13863  s^-1   (50 us tail)
+Comment card.   NUMDCD = 38.                      |C    beta  = 3    / 1.2e-6  = 2.5e6  s^-1   (1.2 us front)
+Comment card.   NUMDCD = 39.                      |C    t_peak ~ 2.09 us
+Comment card.   NUMDCD = 40.                      |C    A1 = 1035.1 V  (= 1000 V / 0.9661, normalises peak to ~1 kV)
+Comment card.   NUMDCD = 41.                      |C
+Comment card.   NUMDCD = 42.                      |C  Surge impedance: Z0 = sqrt(L/C) = sqrt(10e-3/1e-9) ~ 3162 ohm
+Comment card.   NUMDCD = 43.                      |C  Wave travel time (one-way): T = sqrt(L*C) ~ 3.16 us
+Comment card.   NUMDCD = 44.                      |C ===================================================================
+Comment card.   NUMDCD = 45.                      |C  Misc. data cards
+Comment card.   NUMDCD = 46.                      |C  dT [s]   Tmax [s] XOPT    COPT    Epsiln  Tolmat  Tstart
+Misc. data.     1.000E-08   2.000E-04   0.000E+00 |   1.E-8   2.E-4      0.      0.   1.E-5   1.E-5     -1.
+Comment card.   NUMDCD = 48.                      |C  Iout    Iplot   Idoubl  Kssout  Maxout  Ipun    Memsav  Icat
+Comment card.   NUMDCD = 49.                      |C  (Icat = 1 keeps the .pl4 plot file on disk after the run)
+Misc. data.   1000    1  0  0  0  0  0  1  0  0   |    1000       1       0       0       0       0       0       1
+Comment card.   NUMDCD = 51.                      |C ===================================================================
+Comment card.   NUMDCD = 52.                      |C  BRANCH DATA  (fixed-column format)
+Comment card.   NUMDCD = 53.                      |C  cols 3-8 BUS1 | 9-14 BUS2 | 15-26 reference (blank)
+Comment card.   NUMDCD = 54.                      |C  cols 27-32 R [ohm] | 33-38 L [mH] | 39-44 C [uF]
+Comment card.   NUMDCD = 55.                      |C  Column ruler:
+Comment card.   NUMDCD = 56.                      |C  1234567890123456789012345678901234567890123456
+Comment card.   NUMDCD = 57.                      |C    BUS1  BUS2  <-- ref 15-26 -->R[ohm]L[mH] C[uF]
+Comment card.   NUMDCD = 58.                      |C ===================================================================
+Comment card.   NUMDCD = 59.                      |C  --- Series R-L branches: R_sec = 0.25 ohm, L_sec = 0.5 mH ---
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N0    N1                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N1    N2                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N2    N3                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N3    N4                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N4    N5                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N5    N6                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N6    N7                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N7    N8                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N8    N9                  0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N9    N10                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N10   N11                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N11   N12                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N12   N13                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N13   N14                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N14   N15                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N15   N16                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N16   N17                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N17   N18                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N18   N19                 0.25   0.5
+Series R-L-C.   2.500E-01  5.000E-04  0.000E+00   |  N19   N20                 0.25   0.5
+Comment card.   NUMDCD = 80.                      |C
+Comment card.   NUMDCD = 81.                      |C  --- Shunt capacitors to ground (BUS2 blank = ground) ---
+Series R-L-C.   0.000E+00  0.000E+00  2.500E-11   |  N0                                  2.5E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N1                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N2                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N3                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N4                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N5                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N6                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N7                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N8                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N9                                   5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N10                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N11                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N12                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N13                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N14                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N15                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N16                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N17                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N18                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  5.000E-11   |  N19                                  5.E-5
+Series R-L-C.   0.000E+00  0.000E+00  2.500E-11   |  N20                                 2.5E-5
+Blank card ending branches.  IBR, NTOT = 41  22   |BLANK card ending branches
+Blank card ending switches.   KSWTCH = 0.         |BLANK card ending switches
+Comment card.   NUMDCD = 105.                     |C ===================================================================
+Comment card.   NUMDCD = 106.                     |C  SOURCE DATA
+Comment card.   NUMDCD = 107.                     |C  Type 15 - double-exponential surge function (voltage source):
+Comment card.   NUMDCD = 108.                     |C    v(t) = AMP * [ exp(A*t) - exp(B*t) ]   for Tstart <= t <= Tstop
+Comment card.   NUMDCD = 109.                     |C    with A and B entered as NEGATIVE values.
+Comment card.   NUMDCD = 110.                     |C  cols 1-2 type | 3-8 bus | 9-10 V/I flag (blank = voltage)
+Comment card.   NUMDCD = 111.                     |C  cols 11-20 AMPLITUDE | 21-30 A | 31-40 B | 61-70 TSTART | 71-80 TSTOP
+Comment card.   NUMDCD = 112.                     |C ===================================================================
+Source.   1.04E+03 -1.39E+04 -2.50E+06  0.00E+00  |15N0          1035.1   -13863.    -2.5E6        0.        0.        0.     2.E-4
+Blank card ends electric sources.  KCONST = 1     |BLANK card ending sources
+Comment card.   NUMDCD = 115.                     |C ===================================================================
+Comment card.   NUMDCD = 116.                     |C  OUTPUT REQUEST  (node voltages to ground)
+Comment card.   NUMDCD = 117.                     |C  Nodes: input (N0), 25% (N5), 50% (N10), 75% (N15), output (N20)
+Comment card.   NUMDCD = 118.                     |C ===================================================================
+Card of names for time-step loop output.          |  N0    N5    N10   N15   N20
+Blank card ending requests for output variables.  |BLANK card ending node voltage output requests
+ 
+Column headings for the  5   EMTP output variables follow.  These are divided among the 5 possible classes as follows ....
+  First  5     output variables are electric-network voltage differences (upper voltage minus lower voltage);
+   Step      Time      N0         N5         N10        N15        N20
+ 
+      0       0.0         0.0        0.0        0.0        0.0        0.0
+   1000     .1E-4   901.10638 913.746888 884.516371 870.587272 621.935757
+   2000     .2E-4  784.458224 1420.16866  1766.3461 1838.49633 1847.38294
+   3000     .3E-4  682.910164 693.510159 809.043949 1407.97187 1887.83827
+   4000     .4E-4  594.507493 649.411912 135.389371  -361.5054  -457.4216
+   5000     .5E-4  517.548541 283.200358 -367.23383 -729.21522 -343.99052
+   6000     .6E-4   450.55192 477.210036 345.450857 819.948416 1146.03533
+   7000     .7E-4  392.228006 1273.01453 1535.33208 1258.80819 1567.53946
+   8000     .8E-4  341.454119 310.511427 382.590146 791.223822 995.459571
+   9000     .9E-4  297.252908 -339.24283 -393.29965 -848.05287 -605.56822
+  10000     .1E-3  258.773541 200.195373 -131.06282 -648.66463 -1089.6609
+  11000    .11E-3  225.275325 -82.199987 684.555862 851.201774 1126.80341
+  12000    .12E-3   196.11345 686.528125 1265.49211 1353.67023 1088.67595
+  13000    .13E-3  170.726578 81.2313486 512.218293 67.3414593 -31.404678
+  14000    .14E-3  148.626035 -774.59457 -936.54418  -775.4029  -776.4837
+  15000    .15E-3  129.386406 130.634212 -20.278179 -607.65959 -710.58183
+  16000    .16E-3  112.637345 423.738371 718.411026 935.442392 1018.25076
+  17000    .17E-3  98.0564486 452.584885 591.648577 1116.71721 1510.73961
+  18000    .18E-3  85.3630485 382.033792 20.9659653 -479.40367 -531.31923
+  19000    .19E-3   74.312808 -394.65932 -1158.9203 -967.00714 -684.16539
+  % % % % % %   Final time step,  PLTFIL  dumps plot data to ".PL4" disk file.
+  Done dumping plot points to C-like disk file.
+  20000     .2E-3  64.6930204 4.76170476 -235.21626 -239.64328 24.3825267
+ 
+Blank card terminating all plot cards.            |BLANK card ending plot cards
+ 
+Memory storage figures for the preceding, now-completed data case.  -------------------------------  Present   Program
+A value of  "-9999"  indicates that no figure is available.         12-Jun-26  07:51:02              figure     limit  (name)
+     Size List 1.   Number of electric network nodes.                                                   22      6000  (LBUS)
+     Size List 2.   Number of electric network branches.                                                41     10000  (LBRNCH)
+     Size List 3.   Number of data values in R, L, C tables.                                            41    192000  (LDATA)
+     Size List 4.   Number of electric network sources.                                                  1       900  (LEXCT)
+     Size List 5.   Storage for [Y] and triangularized [Y].   No. times =    1     Factors =    59     118    420000  (LYMAT)
+     Size List 6.   Number of entries in switch table.                  No. flops = 0                    0      1200  (LSWTCH)
+     Size List 7.   Number of distinct ALPHANUMERIC data names plus program SPY variables.              44     15000  (LSIZE7)
+     Size List 8.   History points of distributed lines.                                                 0    120000  (LPAST)
+     Size List 9.   Number of nonlinear elements.                                                        0     10000  (LNONL)
+     Size List 10.  Points of nonlinear characteristics.                                                 0     20000  (LCHAR)
+     Size List 11.  Number of Type-59 S.M. outputs.                                                      0       720  (LSMOUT)
+     Size List 12.  Total number of EMTP output variables.                                               5      2000  (LSIZ12)
+     Size List 13.  Working space for batch/SPY plotting.                                            -9999     72800  (LSIZ13)
+     Size List 14.  S.M./U.M. connections to TACS.                                                   -9999       510  (LBSTAC)
+     Size List 15.  Character storage in bytes for MODELS.                                           -9999     90000  (LCTACS)
+     Size List 16.  Total number of Type-59 S.M. masses.                                                 0       800  (LIMASS)
+     Size List 17.  Number of Type-59 Synchronous machines.                                              0        90  (LSYN)
+     Size List 18.  Branch and switch power/energy outputs.                                              0       254  (MAXPE)
+     Size List 19.  Total floating-point TACS table space.                                              23    120000  (LTACST)
+     Size List 20.  Non-copied recursive convolution data.                                               0    100000  (LFSEM)
+     Size List 21.  Total modal/phase [T] matrix storage.                                                0      3000  (LFD)
+     Size List 22.  Total recursive convolution history.                                                 0     15000  (LHIST)
+     Size List 23.  Giant vectors for renumbering, phasors.                                             20    192000  (LSIZ23)
+     Size List 24.  Peak phases of compensation for data.                                                0       120  (LCOMP)
+     Size List 25.  Total table space for all U.M usage.                                             -9999     60000  (LSPCUM)
+     Size List 26.  Square of max number of coupled phases.                                              0    160000  (LSIZ26)
+     Size List 28.  MODELS.  Total work space is divided into INTEGER and REAL.  1st, REAL:          -9999    210000  (LRTACS)
+                             Second  and last,  statistics for INTEGER work space.                       0         0  (LITACS)
+     Size List 29.  RAM disk used by "TAPSAV" table saving (limit is "LABCOM" size LTLABL).          -9999       300  (LSIZ29)
+     Size List 30.  Taku Noda frequency-dependent circuits.                                              0        19  (LSIZ30)
+Timing figures characterizing central processor (CP) solution speed.  ----------------------------   CP sec  Wait sec  Real sec
+     Data input time (through blank card ending branches) ....                                       0.016     0.000     0.016
+     Node renumbering and phasor solution  ....                                                      0.000     0.000     0.000
+     After phasor solution, but before time-step loop  ....                                          0.000     0.000     0.000
+     Integration of equations (time-step loop)  ....                                                 0.031     0.000     0.031
+     Plotting or STATISTICS termination overlays ....                                                0.000     0.000     0.000
+                                                                                                    ---------------------------
+                                                                                          Totals      0.047     0.000     0.047
+ 
+                               ATP Finished at 07:51:02 on Friday, 12 June 2026
+                                      Total Execution Time was 0.05 cpu seconds
