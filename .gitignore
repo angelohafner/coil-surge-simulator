@@ -25,6 +25,9 @@ env/
 relatorio/preview_*.png
 # PDF compilado: regenerável com latexmk -pdf relatorio.tex
 relatorio/relatorio.pdf
+# Frames extraídos dos GIFs para o pacote animate (regeneráveis via ffmpeg,
+# comando documentado em relatorio/build_notes.tex)
+relatorio/frames/
 
 # Arquivos temporários e de log do ATP
 *.tmp

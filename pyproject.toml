@@ -1,0 +1,31 @@
+# Metadados do projeto e configuração de ferramentas.
+#
+# Nota de empacotamento: o pacote Python vive em `src/` e é importado como
+# `src.*` pelos scripts da raiz (com bootstrap de sys.path de uma linha).
+# Tornar o projeto pip-instalável exigiria renomear `src/` para um nome de
+# pacote próprio (ex.: `surto_bobina/`) — mudança registrada como melhoria
+# futura na auditoria (R15) para não churnar todos os imports.
+
+[project]
+name = "surto-bobina"
+version = "1.0.0"
+description = "Simulador de resposta ao surto (impulso 1,2/50 us) em bobina por parametros distribuidos, com validacao cruzada ATP/EMTP"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Angelo Hafner" }]
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "matplotlib>=3.8",
+    "imageio>=2.30",
+    "Pillow>=10.0",
+]
+
+[project.optional-dependencies]
+plotly = ["plotly>=6.0", "kaleido>=1.0"]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
