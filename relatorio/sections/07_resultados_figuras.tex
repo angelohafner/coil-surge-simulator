@@ -1,16 +1,16 @@
 \section{Análise das figuras estáticas}
 
-Esta seção interpreta as figuras PNG geradas em \codefile{output/} e subpastas. A leitura prioriza o significado elétrico dos resultados: propagação da onda, reflexão na saída aberta, amortecimento resistivo, distribuição espacial de tensão e solicitação dielétrica entre seções. Estudos de enrolamentos sob transitórios destacam que as sobretensões internas dependem da propagação de ondas eletromagnéticas e da distribuição capacitiva/indutiva do enrolamento \cite{furgal2020,ari2025}.
+Esta seção interpreta as figuras PNG geradas em \codefile{output/} e subpastas. A janela principal dos gráficos temporais estáticos é de \SI{20}{\micro\second}, para ocupar melhor a largura útil das figuras e concentrar a leitura na frente do surto, na propagação inicial e nas primeiras reflexões. A leitura prioriza o significado elétrico dos resultados: propagação da onda, reflexão na saída aberta, amortecimento resistivo, distribuição espacial de tensão e solicitação dielétrica entre seções. Estudos de enrolamentos sob transitórios destacam que as sobretensões internas dependem da propagação de ondas eletromagnéticas e da distribuição capacitiva/indutiva do enrolamento \cite{furgal2020,ari2025}.
 
 \paragraph{Nota de procedência.} As figuras \codefile{python\_grafico\_overlay.png} e \codefile{python\_grafico\_subplots.png} (antes nomeadas com prefixo \codefile{atp\_}) são geradas pelo \emph{simulador Python} via Plotly nos mesmos cinco nós observados no caso ATP — elas \emph{não} são saída do ATP. A única figura desta versão do relatório que contém dados reais do ATP é a comparação quantitativa da Seção~\ref{sec:validacao-quantitativa} (Figura~\ref{fig:atp-comparacao}). Um antigo \codefile{screenshot.png}, que mostrava uma apresentação de slides sem relação com a simulação, foi removido de \codefile{output/}.
 
 \subsection{Figuras do modelo Pi geradas pelo simulador principal}
 
-\staticfigure{0.92}{pi_io_voltage.png}{Tensão de entrada e tensão de saída no modelo Pi. A curva de entrada representa a fonte aplicada ao nó inicial; a curva de saída mostra a resposta no terminal aberto. O pico de saída próximo de duas vezes a entrada é coerente com a reflexão de tensão em circuito aberto, embora modificado por perdas e discretização.}{fig:pi-io}
+\staticfigure{0.92}{pi_io_voltage.png}{Tensão de entrada e tensão de saída no modelo Pi, na janela de \SI{0}{\micro\second} a \SI{20}{\micro\second}. A curva de entrada representa a fonte aplicada ao nó inicial; a curva de saída mostra a resposta no terminal aberto. O pico de saída próximo de duas vezes a entrada é coerente com a reflexão de tensão em circuito aberto, embora modificado por perdas e discretização.}{fig:pi-io}
 
 A Figura~\ref{fig:pi-io} mostra a grandeza tensão em volts no eixo vertical e tempo em microssegundos no eixo horizontal. O ponto de maior interesse elétrico é a elevação da tensão de saída acima da tensão aplicada. Como a corrente terminal deve ser nula no circuito aberto, a onda refletida soma tensão no extremo, aumentando a solicitação de isolamento perto de \(N_{20}\).
 
-\staticfigure{0.92}{pi_section_voltages.png}{Tensões em nós selecionados do modelo Pi. As curvas em posições distribuídas mostram o atraso de chegada do surto, a deformação da frente e as oscilações posteriores causadas por reflexões sucessivas.}{fig:pi-section}
+\staticfigure{0.92}{pi_section_voltages.png}{Tensões em nós selecionados do modelo Pi, na janela de \SI{0}{\micro\second} a \SI{20}{\micro\second}. As curvas em posições distribuídas mostram o atraso de chegada do surto, a deformação da frente e as oscilações posteriores causadas por reflexões sucessivas.}{fig:pi-section}
 
 Na Figura~\ref{fig:pi-section}, as curvas de diferentes posições evidenciam que a bobina não se comporta como um único nó equipotencial durante o transitório. A frente de onda aparece primeiro na entrada e depois nas posições internas. Esse atraso é essencial para avaliar a distribuição instantânea da tensão ao longo do enrolamento.
 
@@ -28,11 +28,11 @@ A Figura~\ref{fig:pi-heatmap} condensa a propagação espacial e temporal. Faixa
 
 \subsection{Figuras do modelo T}
 
-\staticfigure{0.92}{t_io_voltage.png}{Tensão de entrada e saída no modelo T. A resposta terminal preserva o mesmo fenômeno dominante do modelo Pi: amplificação por reflexão na extremidade aberta.}{fig:t-io}
+\staticfigure{0.92}{t_io_voltage.png}{Tensão de entrada e saída no modelo T, na janela de \SI{0}{\micro\second} a \SI{20}{\micro\second}. A resposta terminal preserva o mesmo fenômeno dominante do modelo Pi: amplificação por reflexão na extremidade aberta.}{fig:t-io}
 
 A Figura~\ref{fig:t-io} permite comparar a resposta terminal do modelo T com a do modelo Pi. Como ambos representam a mesma bobina distribuída por redes equivalentes, a tensão de saída permanece próxima de \SI{2}{kV}. Pequenas diferenças de forma podem surgir porque os pontos capacitivos no modelo T ficam no meio das seções.
 
-\staticfigure{0.92}{t_section_voltages.png}{Tensões em pontos selecionados do modelo T. Os pontos de observação correspondem a posições de meia seção, além dos terminais.}{fig:t-section}
+\staticfigure{0.92}{t_section_voltages.png}{Tensões em pontos selecionados do modelo T, na janela de \SI{0}{\micro\second} a \SI{20}{\micro\second}. Os pontos de observação correspondem a posições de meia seção, além dos terminais.}{fig:t-section}
 
 Na Figura~\ref{fig:t-section}, o deslocamento dos pontos de observação faz com que a distribuição temporal seja ligeiramente diferente da do modelo Pi. Ainda assim, a física principal continua sendo a propagação da frente, a reflexão na saída e as oscilações amortecidas.
 
@@ -47,6 +47,16 @@ A Figura~\ref{fig:t-gradient} deve ser lida com cuidado: os pontos do modelo T n
 \staticfigure{0.94}{t_heatmap.png}{Mapa posição-tempo da tensão no modelo T.}{fig:t-heatmap}
 
 A Figura~\ref{fig:t-heatmap} confirma visualmente que a onda percorre a bobina e retorna por reflexão. A comparação com a Figura~\ref{fig:pi-heatmap} indica que ambos os modelos descrevem o mesmo comportamento global, apesar de discretizarem a capacitância em pontos diferentes.
+
+\subsection{Cenário Pi com retorno aterrado}
+
+\staticfigure{0.92}{grounded_io_voltage.png}{Tensão de entrada e tensão do terminal final no cenário Pi com retorno aterrado. A fonte fica entre a referência e a entrada da bobina; o terminal final retorna diretamente à referência.}{fig:grounded-io}
+
+A Figura~\ref{fig:grounded-io} mostra a consequência direta da condição de contorno aterrada: o terminal final permanece em \SI{0}{V}. Portanto, o interesse deixa de ser a sobretensão terminal aberta e passa a ser a distribuição interna de tensão ao longo do enrolamento.
+
+\staticfigure{0.92}{grounded_section_voltages.png}{Tensões em nós selecionados no cenário Pi com retorno aterrado. As curvas internas respondem ao surto, mas o nó final é preso ao potencial de referência.}{fig:grounded-section}
+
+A comparação com o caso aberto evidencia que a condição de contorno controla a reflexão e a forma da distribuição de tensão. No caso aterrado, a bobina fecha o caminho de retorno até a referência, em vez de impor corrente terminal nula.
 
 \subsection{Figuras Plotly nos nós do caso ATP (geradas pelo simulador Python)}
 

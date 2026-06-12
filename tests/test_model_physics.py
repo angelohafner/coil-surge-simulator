@@ -98,3 +98,20 @@ def test_aberto_duplica_aproximadamente():
     cfg = SimulationConfig(n_sections=10, t_total=30e-6, dt=2e-8)
     vpk = _vpk_out(cfg)
     assert 1.7 * 1000.0 < vpk < 2.3 * 1000.0
+
+
+@pytest.mark.parametrize("model", ["pi", "t"])
+def test_terminacao_aterrada_prende_no_final_na_referencia(model):
+    """A grounded termination closes the surge-source loop through reference."""
+    cfg = SimulationConfig(
+        n_sections=8,
+        model_type=model,
+        termination="grounded",
+        t_total=20e-6,
+        dt=2e-8,
+    )
+    source = ImpulseSource(cfg.source_type, cfg.V_amplitude,
+                           cfg.t_front, cfg.t_tail)
+    res = TimeDomainSolver(DistributedCoil(cfg), source, cfg).solve()
+    assert float(np.max(np.abs(res["V_nodes"][-1]))) == pytest.approx(0.0, abs=1e-12)
+    assert float(np.max(np.abs(res["V_nodes"][1:-1]))) > 100.0

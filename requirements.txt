@@ -13,5 +13,8 @@ Pillow==12.1.1
 plotly==6.6.0
 kaleido==1.2.0          # exportação de PNG pelo Plotly
 
+# Apresentacao Manim (manim_presentation.py)
+manim==0.20.1
+
 # Testes
 pytest==9.0.2

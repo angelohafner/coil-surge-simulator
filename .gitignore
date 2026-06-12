@@ -10,6 +10,9 @@ env/
 # Output gerado pelo simulador
 /output/
 
+# Output gerado pelo Manim
+/media/
+
 # Artefatos temporários de LaTeX
 *.aux
 *.bbl

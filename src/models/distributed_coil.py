@@ -11,6 +11,7 @@ Pi-model (N sections):
   KCL node k (1..N-1): C_sec  * dV_k/dt = I_k - I_{k+1}
   KCL node N   (open): C_sec/2 * dV_N/dt = I_N
   KCL node N   (R_t):  C_sec/2 * dV_N/dt = I_N - V_N / R_term
+  Grounded end: V_N = 0 is imposed at the reference node.
 
   KVL section k (1..N): L_sec * dI_k/dt = V_{k-1} - V_k - R_sec * I_k
     with V_0 = V_source(t)
@@ -27,12 +28,13 @@ T-model (N sections):
   renamed after the audit, finding A11.)
 
   State (open circuit): x = [V_m0, ..., V_m(N-1), i_junction_0, ..., i_junction_{N-1}]  (2N,)
-  State (resistive):    x = above + [i_out]  (2N+1,)
+  State (resistive or grounded): x = above + [i_out]  (2N+1,)
     where i_out = I_R[N-1] is the output current through the last right half-inductor
 
   KCL midpoint k=0..N-2: C_sec * dV_mk/dt = i_junction_k - i_junction_{k+1}
   KCL midpoint k=N-1 (open): C_sec * dV_m(N-1)/dt = i_junction_{N-1}
-  KCL midpoint k=N-1 (R_t):  C_sec * dV_m(N-1)/dt = i_junction_{N-1} - i_out
+  KCL midpoint k=N-1 (R_t or grounded):
+    C_sec * dV_m(N-1)/dt = i_junction_{N-1} - i_out
 
   KVL i_junction_0 (left half, section 0):
     (L/2) * d(i_junction_0)/dt = V_src - V_m0 - (R/2)*i_junction_0
@@ -40,12 +42,14 @@ T-model (N sections):
   KVL i_junction_k (k=1..N-1, combined right half of section k-1 + left half of section k):
     L * d(i_junction_k)/dt = V_m(k-1) - V_mk - R*i_junction_k
 
-  KVL i_out (right half, last section, resistive only):
+  KVL i_out (right half, last section, resistive or grounded):
     (L/2) * d(i_out)/dt = V_m(N-1) - (R_term + R/2)*i_out
+    with R_term = 0 for a grounded output terminal
 
   Output voltage:
     Open:      V_out = V_m(N-1)   (no drop across zero-current right half)
     Resistive: V_out = R_term * i_out
+    Grounded:  V_out = 0
 """
 
 import numpy as np
@@ -110,12 +114,18 @@ class DistributedCoil:
         if self.model_type == "pi":
             V = np.empty(n + 1)
             V[0] = V_src
-            V[1:] = x[:n]
+            if self.termination == "grounded":
+                V[1:-1] = x[: n - 1]
+                V[-1] = 0.0
+            else:
+                V[1:] = x[:n]
             return V
         else:
             V_m = x[:n]
             if self.termination == "open":
                 V_out = V_m[-1]
+            elif self.termination == "grounded":
+                V_out = 0.0
             else:
                 i_out = x[2 * n]
                 V_out = self.R_term * i_out
@@ -165,24 +175,33 @@ class DistributedCoil:
 
         dxdt = np.empty(2 * n)
 
+        V_for_kvl = V.copy()
+        if self.termination == "grounded":
+            V_for_kvl[-1] = 0.0
+
         # KVL: L * dI_k/dt = V_{k-1} - V_k - R * I_k
         V_prev = np.empty(n)
         V_prev[0] = V_src
-        V_prev[1:] = V[:-1]
-        dxdt[n:] = (V_prev - V - R * I) / L
+        V_prev[1:] = V_for_kvl[:-1]
+        dxdt[n:] = (V_prev - V_for_kvl - R * I) / L
 
         # KCL: C_node * dV_k/dt = I_k - I_{k+1}
-        I_next = np.empty(n)
-        I_next[:-1] = I[1:]
-        if self.termination == "open":
-            I_next[-1] = 0.0
+        if self.termination == "grounded":
+            if n > 1:
+                dxdt[: n - 1] = (I[: n - 1] - I[1:]) / C
+            dxdt[n - 1] = 0.0
         else:
-            I_next[-1] = V[-1] / self.R_term
+            I_next = np.empty(n)
+            I_next[:-1] = I[1:]
+            if self.termination == "open":
+                I_next[-1] = 0.0
+            else:
+                I_next[-1] = V[-1] / self.R_term
 
-        C_node = np.full(n, C)
-        C_node[-1] = C / 2.0   # half Pi end-cap at output terminal
+            C_node = np.full(n, C)
+            C_node[-1] = C / 2.0   # half Pi end-cap at output terminal
 
-        dxdt[:n] = (I - I_next) / C_node
+            dxdt[:n] = (I - I_next) / C_node
 
         return dxdt
 
@@ -199,6 +218,7 @@ class DistributedCoil:
         i_junc = x[n:2*n]      # junction currents  i_junction_0 .. i_junction_{N-1}
 
         open_circuit = (self.termination == "open")
+        grounded_output = (self.termination == "grounded")
         size = self.state_size()
         dxdt = np.zeros(size)
 
@@ -222,7 +242,11 @@ class DistributedCoil:
 
         # KVL for i_out (right half of last section, half-inductor):
         #   (L/2) * d(i_out)/dt = V_m(N-1) - (R_term + R/2)*i_out
+        #   use R_term = 0 for a grounded output terminal
         if not open_circuit:
-            dxdt[2 * n] = (V_m[-1] - (self.R_term + R / 2.0) * i_out) / (L / 2.0)
+            termination_resistance = 0.0 if grounded_output else self.R_term
+            dxdt[2 * n] = (
+                V_m[-1] - (termination_resistance + R / 2.0) * i_out
+            ) / (L / 2.0)
 
         return dxdt

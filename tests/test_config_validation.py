@@ -42,6 +42,7 @@ def test_r_total_zero_e_permitido():
 def test_termination_validas():
     SimulationConfig(termination="open")
     SimulationConfig(termination="resistive", R_term=3162.0)
+    SimulationConfig(termination="grounded")
     SimulationConfig(termination="OPEN")  # case-insensitive
 
 

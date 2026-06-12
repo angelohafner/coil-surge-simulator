@@ -10,11 +10,18 @@ GIFs generated
   2. heatmap_anim.gif
        Animated 2-D heatmap (position × time), with a vertical time cursor.
 
-  3. comparison_capacitance.gif
+  3. voltage_wave_grounded.gif
+       Voltage distribution for the Pi case with the final coil terminal
+       tied to the reference node.
+
+  4. heatmap_grounded.gif
+       Animated 2-D heatmap for the grounded-end Pi case.
+
+  5. comparison_capacitance.gif
        Side-by-side comparison of a low-C and a high-C case,
        illustrating how ground capacitance shapes the wave front.
 
-  4. comparison_model.gif
+  6. comparison_model.gif
        Side-by-side comparison of the Pi-model and T-model for
        identical electrical parameters.
 
@@ -63,7 +70,13 @@ class GifGenerator:
         pos = results["positions"] * 100    # percent
 
         cfg = results["config"]
-        label = f'{cfg.model_type.upper()}-model ({cfg.n_sections} sec.)'
+        termination = str(getattr(cfg, "termination", "open")).lower()
+        if termination == "grounded":
+            label = f'{cfg.model_type.upper()}-model, grounded end ({cfg.n_sections} sec.)'
+        elif termination == "resistive":
+            label = f'{cfg.model_type.upper()}-model, resistive end ({cfg.n_sections} sec.)'
+        else:
+            label = f'{cfg.model_type.upper()}-model, open end ({cfg.n_sections} sec.)'
 
         # sub-sample time frames
         frame_idx = np.arange(0, len(t), _SUBSAMPLE)
@@ -80,7 +93,7 @@ class GifGenerator:
         ax.set_ylabel("Voltage [V]")
         ax.axhline(0, color="gray", linewidth=0.7, linestyle="--")
         ax.grid(True)
-        fig.tight_layout()
+        fig.tight_layout(rect=[0, 0, 1, 0.95])
 
         # static annotation for surge impedance, etc.
         ax.text(
@@ -124,6 +137,13 @@ class GifGenerator:
         t_us = t * 1e6
 
         cfg = results["config"]
+        termination = str(getattr(cfg, "termination", "open")).lower()
+        if termination == "grounded":
+            heatmap_title = f"{cfg.model_type.upper()}-model Heatmap, grounded end"
+        elif termination == "resistive":
+            heatmap_title = f"{cfg.model_type.upper()}-model Heatmap, resistive end"
+        else:
+            heatmap_title = f"{cfg.model_type.upper()}-model Heatmap, open end"
 
         frame_idx = np.arange(0, len(t), _SUBSAMPLE)
         vmax = np.max(np.abs(V))
@@ -142,9 +162,7 @@ class GifGenerator:
         cbar.set_label("Voltage [V]", fontsize=8)
         ax_map.set_xlabel("Time [µs]")
         ax_map.set_ylabel("Position [%]")
-        ax_map.set_title(
-            f"{cfg.model_type.upper()}-model Heatmap"
-        )
+        ax_map.set_title(heatmap_title)
 
         # cursor line on heatmap
         (cursor,) = ax_map.plot([], [], color="yellow", linewidth=1.5, linestyle="--")
@@ -159,7 +177,7 @@ class GifGenerator:
         ax_wave.axvline(0, color="gray", linewidth=0.7, linestyle="--")
         ax_wave.grid(True)
 
-        fig.tight_layout()
+        fig.tight_layout(rect=[0, 0, 1, 0.95])
 
         def init():
             cursor.set_data([], [])
@@ -262,6 +280,7 @@ class GifGenerator:
         self,
         results_pi: dict,
         results_t: dict,
+        results_grounded: dict,
         results_low_c: dict,
         results_high_c: dict,
         label_low_c: str,
@@ -270,7 +289,9 @@ class GifGenerator:
         print("  Generating GIFs ...")
         self.generate_wave_animation(results_pi,  "voltage_wave_pi.gif")
         self.generate_wave_animation(results_t,   "voltage_wave_t.gif")
+        self.generate_wave_animation(results_grounded, "voltage_wave_grounded.gif")
         self.generate_heatmap_animation(results_pi, "heatmap_anim.gif")
+        self.generate_heatmap_animation(results_grounded, "heatmap_grounded.gif")
         self.generate_comparison_animation(
             results_low_c, results_high_c,
             label_low_c, label_high_c,

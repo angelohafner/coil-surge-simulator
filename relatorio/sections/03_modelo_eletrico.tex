@@ -32,4 +32,6 @@ Uma estimativa de tempo de propagação associada ao par \(L_{\mathrm{total}}, C
 
 A saída está em circuito aberto. Para uma onda incidente, essa condição implica corrente terminal nula e tende a produzir reflexão de tensão com mesmo sinal. A duplicação aproximada do pico na extremidade aberta é coerente com os resultados numéricos: a tensão de entrada atinge \SI{1000}{V}, enquanto a saída chega a cerca de \SI{2039}{V}. Esse valor não é uma simples regra ideal, porque a rede discreta, a resistência e a forma temporal do impulso modificam a resposta.
 
+Além do caso aberto, o simulador também executa um cenário Pi com terminação aterrada. Nesse cenário, a fonte de surto fica entre o nó de referência e a entrada da bobina, enquanto o terminal final da bobina retorna diretamente ao nó de referência. Essa condição prende a tensão do terminal final em \SI{0}{V} e serve como contraste didático para mostrar como a condição de contorno altera a reflexão e a distribuição interna de tensão.
+
 O modelo T, também implementado no projeto, desloca a capacitância de cada seção para um ponto intermediário. Em termos de engenharia, Pi e T são aproximações discretas diferentes de uma mesma estrutura distribuída. A comparação entre eles ajuda a avaliar se a interpretação física depende fortemente da topologia numérica escolhida.

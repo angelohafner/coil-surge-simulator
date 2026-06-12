@@ -1,58 +1,27 @@
-\section{Animações em GIF e incorporação no PDF}
+\section{Animacoes em GIF e incorporacao no PDF}
 
-Os GIFs originais em \codefile{output/gifs} foram convertidos para sequências de 75 frames cada, usando \codefile{ffmpeg} com taxa de \SI{5}{fps} e largura de 720 pixels. A incorporação abaixo usa o pacote \codefile{animate}. Em visualizadores compatíveis, como Adobe Acrobat Reader, as figuras podem ser reproduzidas com controles. Em visualizadores simples, o PDF pode exibir apenas o primeiro quadro.
+Os GIFs originais em \codefile{output/gifs} foram convertidos para sequencias de frames PNG dentro de \codefile{relatorio/frames}, usando \codefile{ffmpeg}. Nesta revisao, a animacao incorporada ao PDF foi atualizada para o caso Pi com retorno aterrado: a fonte de surto fica entre o no de referencia e a entrada da bobina, e o terminal final da bobina retorna diretamente ao mesmo no de referencia. Assim, a animacao documenta a condicao solicitada de fim da bobina conectado ao no comum com a fonte, em vez de enfatizar apenas a extremidade aberta.
 
-\subsection{Onda viajante no modelo Pi}
+A incorporacao usa o pacote \codefile{animate}. Em visualizadores compativeis, como Adobe Acrobat Reader, as figuras podem ser reproduzidas com controles. Em visualizadores simples, o PDF pode exibir apenas um quadro estatico.
 
-\begin{figure}[H]
-\centering
-\animategraphics[controls,loop,autoplay,width=0.86\linewidth]{5}{frames/voltage_wave_pi/frame-}{1}{75}
-\caption{Animação da distribuição de tensão ao longo da bobina no modelo Pi. A curva se desloca da entrada para a saída e evidencia a reflexão no terminal aberto.}
-\label{fig:anim-pi}
-\end{figure}
-
-A Figura~\ref{fig:anim-pi} deixa claro que o surto não aparece simultaneamente em todas as seções. A frente se desloca ao longo da posição normalizada, atinge a extremidade aberta e retorna por reflexão. Esse comportamento é a manifestação direta da representação por parâmetros distribuídos.
-
-\subsection{Onda viajante no modelo T}
+\subsection{Onda viajante com retorno ao no comum}
 
 \begin{figure}[H]
 \centering
-\animategraphics[controls,loop,autoplay,width=0.86\linewidth]{5}{frames/voltage_wave_t/frame-}{1}{75}
-\caption{Animação da distribuição de tensão ao longo da bobina no modelo T.}
-\label{fig:anim-t}
+\animategraphics[controls,loop,autoplay,width=0.90\linewidth]{5}{frames/voltage_wave_grounded/frame-}{1}{75}
+\caption{Animacao da distribuicao de tensao ao longo da bobina no modelo Pi com terminal final conectado ao no de referencia. A entrada recebe o surto e a extremidade em 100\% permanece presa ao potencial comum da fonte.}
+\label{fig:anim-grounded-wave}
 \end{figure}
 
-A Figura~\ref{fig:anim-t} apresenta o mesmo fenômeno com a discretização T. A comparação visual com o modelo Pi ajuda a separar comportamento físico robusto de artefatos da topologia discreta. A reflexão e a amplificação terminal permanecem como aspectos dominantes.
+A Figura~\ref{fig:anim-grounded-wave} mostra que a resposta deixa de ser a mesma do terminal aberto. No caso aberto, a corrente terminal nula favorece reflexao de tensao com mesmo sinal e elevacao da tensao na extremidade. No caso com retorno ao no comum, o terminal final e imposto em \SI{0}{V}; por isso a informacao mais importante passa a ser a distribuicao interna de tensao ao longo do enrolamento.
 
-\subsection{Mapa de calor animado}
+\subsection{Mapa de calor animado do caso aterrado}
 
 \begin{figure}[H]
 \centering
-\animategraphics[controls,loop,autoplay,width=0.94\linewidth]{5}{frames/heatmap_anim/frame-}{1}{75}
-\caption{Animação do mapa de calor posição-tempo com cursor temporal.}
-\label{fig:anim-heatmap}
+\animategraphics[controls,loop,autoplay,width=0.94\linewidth]{5}{frames/heatmap_grounded/frame-}{1}{75}
+\caption{Mapa de calor animado do modelo Pi com terminal final conectado ao no comum com a fonte. O cursor temporal relaciona a distribuicao instantanea com o historico posicao-tempo.}
+\label{fig:anim-grounded-heatmap}
 \end{figure}
 
-A Figura~\ref{fig:anim-heatmap} combina duas leituras: o mapa completo posição-tempo e o perfil instantâneo. Isso facilita a interpretação de reflexões, pois o cursor mostra em que instante a distribuição espacial corresponde ao histórico acumulado no mapa.
-
-\subsection{Comparação de capacitância}
-
-\begin{figure}[H]
-\centering
-\animategraphics[controls,loop,autoplay,width=0.94\linewidth]{5}{frames/comparison_capacitance/frame-}{1}{75}
-\caption{Animação comparando baixa e alta capacitância total para a bobina.}
-\label{fig:anim-cap}
-\end{figure}
-
-A Figura~\ref{fig:anim-cap} evidencia a influência da capacitância para terra. Maior capacitância reduz a impedância de surto e altera a velocidade/forma da frente, aumentando a importância do carregamento capacitivo local. Menor capacitância tende a deixar a rede menos carregada para terra, modificando a amplitude e a forma da onda viajante.
-
-\subsection{Comparação entre modelos Pi e T}
-
-\begin{figure}[H]
-\centering
-\animategraphics[controls,loop,autoplay,width=0.94\linewidth]{5}{frames/comparison_model/frame-}{1}{75}
-\caption{Animação comparando os modelos Pi e T com os mesmos parâmetros elétricos.}
-\label{fig:anim-model}
-\end{figure}
-
-A Figura~\ref{fig:anim-model} é a verificação visual mais direta da robustez do resultado. As duas topologias discretas apresentam comportamento global semelhante, o que sustenta a conclusão de que o fenômeno observado é físico: onda viajante, reflexão em circuito aberto e amortecimento resistivo. As diferenças finas decorrem da localização dos elementos capacitivos e dos pontos de amostragem.
+A Figura~\ref{fig:anim-grounded-heatmap} complementa a animacao da onda viajante porque mostra o comportamento no plano tempo--posicao. A borda em 100\% permanece vinculada ao no de referencia, enquanto os nos internos respondem ao impulso aplicado na entrada. Essa visualizacao torna mais direta a comparacao conceitual com o caso aberto: muda-se a condicao de contorno, mudam-se a reflexao e a distribuicao de solicitacao dieletrica.

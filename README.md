@@ -38,7 +38,8 @@ output/
   t_model/            same set of csv/figures/metadata for the T model
   low_c/  high_c/     csv + metadata for the capacitance variants
   gifs/               voltage_wave_pi.gif   voltage_wave_t.gif
-                      heatmap_anim.gif
+                      voltage_wave_grounded.gif
+                      heatmap_anim.gif       heatmap_grounded.gif
                       comparison_capacitance.gif
                       comparison_model.gif
 ```
@@ -49,7 +50,7 @@ output/
 
 ```
 project_root/
-  main.py                 entry point (4 scenarios: Pi, T, low-C, high-C)
+  main.py                 entry point (Pi, T, grounded, low-C, high-C)
   run_atp.py              runs ATP on surto_bobina.atp, parses the .pl4,
                           plots REAL ATP results (Plotly HTML)
   surto_bobina.atp        ATP/EMTP deck of the default Pi case
@@ -266,7 +267,7 @@ For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
 | `V_amplitude` | V | 1000 | Peak source voltage |
 | `t_front` | s | 1.2 × 10⁻⁶ | Impulse front time T₁ |
 | `t_tail` | s | 50 × 10⁻⁶ | Impulse tail time T₂ |
-| `t_total` | s | 50 × 10⁻⁶ | Simulation duration |
+| `t_total` | s | 20 × 10⁻⁶ | Main simulation duration |
 | `dt` | s | 10 × 10⁻⁹ | Reporting time step |
 | `solver_method` | — | "RK45" | scipy method (`"Radau"` for stiff cases) |
 | `rtol` / `atol` | — | 1e-7 / 1e-12 | solver tolerances |
@@ -274,6 +275,14 @@ For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
 | `R_term` | Ω | 10⁶ | Load resistance (if `"resistive"`) |
 | `c_scenario_multipliers` | — | [0.1, 10] | C_total factors for the variant scenarios |
 | `output_dir` | — | "output" | Root folder for results |
+
+`termination="grounded"` is also supported. It ties the final coil terminal
+directly to the reference node, so the surge source is between reference and
+the coil input and the coil returns to reference at its far end.
+
+The bundled default case uses a 20 µs reporting window for the main CSV and
+static figures. For longer animations or late-time reflection studies, use a
+custom config with `t_total = 50e-6` or larger.
 
 All parameters are **validated on load**: out-of-range values, unknown
 keys and invalid enumerations raise an error listing every problem;
@@ -291,7 +300,10 @@ missing keys fall back to defaults with an explicit warning.
 | `csv/summary_scalars.csv` | `transfer_ratio`, `V_peak_in_V`, `V_peak_out_V` |
 | `run_metadata.json` | scenario name, ISO timestamp, git commit, library versions, full config |
 | `figures/*.png` | io_voltage, section_voltages, max_voltage, gradient, heatmap |
-| `gifs/*.gif` | wave animations and scenario comparisons |
+| `gifs/*.gif` | wave animations, including the grounded-end Pi case, and scenario comparisons |
+
+`main.py` also writes `output/grounded/` for the Pi model with the final coil
+terminal tied to the reference node.
 
 ---
 
@@ -337,6 +349,19 @@ The LaTeX report lives in `relatorio/` (compile with
 artifacts, renamed by provenance: `pi_*`/`t_*` from `main.py`,
 `python_*` from `scripts/plot_plotly.py`, `atp_*` only for figures
 containing real ATP data (`scripts/compare_python_atp.py`).
+
+## Manim technical presentation
+
+`manim_presentation.py` builds a didactic Manim Community presentation from
+the generated project data: the default configuration, Pi/T voltage CSVs,
+summary scalars and Python x ATP comparison table.  Regenerate the data first
+if needed:
+
+```bash
+python main.py
+python scripts/compare_python_atp.py
+manim -pql --fps 15 manim_presentation.py SurgePresentation
+```
 
 ---
 

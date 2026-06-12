@@ -8,7 +8,7 @@
   "V_amplitude": 1000.0,
   "t_front": 1.2e-6,
   "t_tail": 50e-6,
-  "t_total": 5e-5,
+  "t_total": 2e-5,
   "dt": 1e-8,
   "solver_method": "RK45",
   "rtol": 1e-7,

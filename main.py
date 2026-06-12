@@ -20,6 +20,7 @@ Scenarios simulated automatically
 -----------------------------------
   - Default Pi model  (from config file)         -> output/
   - Default T model   (same parameters)          -> output/t_model/
+  - Grounded-end Pi   (coil returns to reference)-> output/grounded/
   - Low-C variant     (C_total x min multiplier) -> output/low_c/
   - High-C variant    (C_total x max multiplier) -> output/high_c/
   The multipliers come from `c_scenario_multipliers` in the config.
@@ -147,6 +148,7 @@ def main():
     scenarios = {
         "pi":     base_cfg.copy_with(model_type="pi"),
         "t":      base_cfg.copy_with(model_type="t"),
+        "grounded": base_cfg.copy_with(model_type="pi", termination="grounded"),
         "low_c":  base_cfg.copy_with(model_type="pi",
                                      C_total=base_cfg.C_total * mult_low),
         "high_c": base_cfg.copy_with(model_type="pi",
@@ -155,6 +157,7 @@ def main():
     scenario_dirs = {
         "pi":     out_dir,
         "t":      os.path.join(out_dir, "t_model"),
+        "grounded": os.path.join(out_dir, "grounded"),
         "low_c":  os.path.join(out_dir, "low_c"),
         "high_c": os.path.join(out_dir, "high_c"),
     }
@@ -191,12 +194,22 @@ def main():
     pg_t = PlotGenerator(results["t"], derived_t, scenario_dirs["t"])
     pg_t.plot_all()
 
+    print("\n[Static Figures - Grounded-end Pi model]")
+    derived_grounded = processors["grounded"].compute_derived()
+    pg_grounded = PlotGenerator(
+        results["grounded"],
+        derived_grounded,
+        scenario_dirs["grounded"],
+    )
+    pg_grounded.plot_all()
+
     # ── Animated GIFs ─────────────────────────────────────────────────
     print("\n[Animated GIFs]")
     gifgen = GifGenerator(out_dir)
     gifgen.generate_all(
         results_pi=results["pi"],
         results_t=results["t"],
+        results_grounded=results["grounded"],
         results_low_c=results["low_c"],
         results_high_c=results["high_c"],
         label_low_c=f'C x {mult_low:g}  = {scenarios["low_c"].C_total:.1e} F',
@@ -210,6 +223,7 @@ def main():
     print(f"    +-- csv/, run_metadata.json   - Pi (primary scenario)")
     print(f"    +-- figures/                  - static PNG plots (Pi)")
     print(f"    +-- t_model/                  - T model (csv + figures)")
+    print(f"    +-- grounded/                 - Pi model with grounded output terminal")
     print(f"    +-- low_c/, high_c/           - capacitance variants (csv)")
     print(f"    +-- gifs/                     - animated GIFs")
     print("=" * 60)

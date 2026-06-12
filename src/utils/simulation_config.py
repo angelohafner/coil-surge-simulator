@@ -13,7 +13,7 @@ from dataclasses import dataclass, asdict, field, fields
 
 VALID_MODEL_TYPES = ("pi", "t")
 VALID_SOURCE_TYPES = ("double_exp", "ramp_exp")
-VALID_TERMINATIONS = ("open", "resistive")
+VALID_TERMINATIONS = ("open", "resistive", "grounded")
 
 
 @dataclass
@@ -32,7 +32,7 @@ class SimulationConfig:
     t_tail: float = 50e-6         # tail time T2 [s]
 
     # Time domain simulation
-    t_total: float = 50e-6        # total simulation time [s]
+    t_total: float = 20e-6        # total simulation time [s]
     dt: float = 1e-8              # reporting time step [s]
 
     # ODE solver (scipy.integrate.solve_ivp)
@@ -41,7 +41,7 @@ class SimulationConfig:
     atol: float = 1e-12           # absolute tolerance
 
     # Output terminal condition
-    termination: str = "open"     # "open" or "resistive"
+    termination: str = "open"     # "open", "resistive", or "grounded"
     R_term: float = 1e6           # termination resistance [Ohm]
 
     # Study scenarios run by main.py in addition to the base Pi/T cases:
