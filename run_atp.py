@@ -4,15 +4,27 @@ run_atp.py
 Executa ATP, lê o arquivo .pl4 resultante e salva gráficos interativos em HTML.
 Script independente — não depende dos demais módulos do projeto.
 
+Os gráficos gerados por este script contêm RESULTADOS REAIS DO ATP
+(lidos do .pl4). Para a visualização equivalente do simulador Python use
+scripts/plot_plotly.py; para a comparação quantitativa entre os dois use
+scripts/compare_python_atp.py.
+
 Requisitos:
     pip install numpy plotly
+    ATP instalado (tpbigG.exe). O executável é localizado, nesta ordem:
+      1. argumento --atp-exe
+      2. variável de ambiente ATP_EXE
+      3. caminho default C:\\ATP\\ATP\\GNUATP\\tpbigG.exe
 
 Uso:
     python run_atp.py
+    python run_atp.py --atp-exe "C:\\caminho\\tpbigG.exe" --out output/atp
 """
 
 from __future__ import annotations
 
+import argparse
+import os
 import struct
 import subprocess
 import sys
@@ -23,12 +35,14 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  PARÂMETROS — edite aqui
+#  DEFAULTS — todos relativos à raiz do repositório (sobrescreva via CLI)
 # ══════════════════════════════════════════════════════════════════════════════
 
-ATP_EXE    = r"C:\ATP\ATP\GNUATP\tpbigG.exe"
-ATP_FILE   = r"E:\surto-1\surto_bobina.atp"
-OUTPUT_DIR = pathlib.Path(r"E:\surto-1\output\atp")
+ROOT = pathlib.Path(__file__).resolve().parent
+
+DEFAULT_ATP_EXE = os.environ.get("ATP_EXE", r"C:\ATP\ATP\GNUATP\tpbigG.exe")
+DEFAULT_ATP_FILE = ROOT / "surto_bobina.atp"
+DEFAULT_OUTPUT_DIR = ROOT / "output" / "atp"
 
 # Nós a plotar (devem constar na seção OUTPUT REQUEST do .atp)
 NODES: list[str] = ["N0", "N5", "N10", "N15", "N20"]
@@ -44,8 +58,9 @@ NODE_LABELS: dict[str, str] = {
 TIME_UNIT  = "µs";  TIME_SCALE  = 1e6    # s  → µs
 VOLT_UNIT  = "kV";  VOLT_SCALE  = 1e-3   # V  → kV
 
-TITLE         = "Resposta ao surto 1,2/50 µs — bobina distribuída Pi (N=20)"
-HTML_FILENAME = "surto_bobina.html"
+TITLE         = ("Resposta ao surto 1,2/50 µs — bobina distribuída Pi (N=20) "
+                 "— resultados ATP (.pl4)")
+HTML_FILENAME = "surto_bobina_atp.html"
 
 # Timeout máximo para o ATP (segundos)
 ATP_TIMEOUT = 120
@@ -97,8 +112,15 @@ def run_atp(exe: str, atp_file: str) -> tuple[pathlib.Path, pathlib.Path]:
     result = subprocess.run([str(exe_p), str(atp_p)], **common_kwargs)
     lis, pl4 = _find_outputs()
 
-    # Tentativa 2: stdin (alguns builds antigos do ATP usam esta forma)
-    if lis is None:
+    # O build GNU (tpbigG) envia a listagem para stdout em vez de gravar
+    # um .lis: persiste o stdout como listagem ao lado do deck.
+    if lis is None and (result.stdout or "").strip():
+        lis = atp_p.with_suffix(".lis")
+        lis.write_text(result.stdout, encoding="utf-8", errors="replace")
+
+    # Tentativa 2: stdin (alguns builds antigos do ATP usam esta forma).
+    # Só faz sentido se a tentativa 1 não produziu nem .pl4 nem listagem.
+    if pl4 is None and lis is None:
         print("[ATP] Tentando via stdin ...")
         with open(atp_p, "r") as f_in:
             result = subprocess.run(
@@ -110,19 +132,25 @@ def run_atp(exe: str, atp_file: str) -> tuple[pathlib.Path, pathlib.Path]:
 
     _log_atp(result)
 
-    if lis is None:
+    # Falha dura detectada na listagem (ex.: KILL = 6 por erro de cartão)
+    combined = (result.stdout or "") + (result.stderr or "")
+    if "KILL code number" in combined:
+        kill_line = next((l for l in combined.splitlines() if "KILL =" in l), "")
         raise RuntimeError(
-            f"ATP não gerou arquivo .lis.  Código de saída: {result.returncode}\n"
-            "Verifique se o caminho ATP_EXE está correto e se o .atp é válido."
+            "ATP abortou com erro de dados (KILL). "
+            f"{kill_line.strip()}\n"
+            f"Consulte a listagem completa: {lis if lis else '(stdout do processo)'}"
         )
 
     if pl4 is None:
         raise RuntimeError(
-            ".lis gerado, mas .pl4 não encontrado.\n"
-            "Verifique se há nós na seção OUTPUT REQUEST do .atp."
+            f"ATP não gerou o .pl4.  Código de saída: {result.returncode}\n"
+            "Verifique o caminho do executável, a seção OUTPUT REQUEST do .atp\n"
+            "e se o cartão inteiro de misc. data tem ICAT = 1 (sem ele o GNU\n"
+            "ATP descarta o arquivo de plotagem ao final da execução)."
         )
 
-    print(f"[ATP] OK  —  .lis: {lis.name}  |  .pl4: {pl4.name}")
+    print(f"[ATP] OK  —  listagem: {lis.name if lis else 'stdout'}  |  .pl4: {pl4.name}")
     return lis, pl4
 
 
@@ -355,9 +383,15 @@ _PALETTE = [
 
 
 def _match(data: dict, node: str) -> str | None:
-    """Retorna a chave do dict que contém o nome do nó (ignora prefixos ATP)."""
+    """
+    Retorna a chave do dict cujo nome (sem espaços, maiúsculo) é IGUAL ao nó.
+
+    O casamento é exato: a versão antiga usava substring e 'N1' casaria com
+    'N10'/'N15' dependendo da ordem do dict (auditoria, risco de erro
+    silencioso).
+    """
     for k in data:
-        if node.upper() in k.upper():
+        if k.strip().upper() == node.strip().upper():
             return k
     return None
 
@@ -460,9 +494,26 @@ def plot_results(
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main() -> None:
+    ap = argparse.ArgumentParser(
+        description="Executa o ATP no deck do projeto, lê o .pl4 e gera HTML Plotly.")
+    ap.add_argument("--atp-exe", default=DEFAULT_ATP_EXE,
+                    help="caminho do tpbigG.exe (ou defina a env ATP_EXE)")
+    ap.add_argument("--atp-file", default=str(DEFAULT_ATP_FILE),
+                    help="deck .atp a executar (default: surto_bobina.atp na raiz)")
+    ap.add_argument("--out", default=str(DEFAULT_OUTPUT_DIR),
+                    help="pasta de saída do HTML (default: output/atp)")
+    ap.add_argument("--pl4",
+                    help="usa um .pl4 existente em vez de executar o ATP")
+    args = ap.parse_args()
+
     try:
-        # 1. Rodar ATP
-        _, pl4_path = run_atp(ATP_EXE, ATP_FILE)
+        # 1. Rodar ATP (ou reaproveitar .pl4 existente)
+        if args.pl4:
+            pl4_path = pathlib.Path(args.pl4)
+            if not pl4_path.exists():
+                raise FileNotFoundError(f".pl4 não encontrado: {pl4_path}")
+        else:
+            _, pl4_path = run_atp(args.atp_exe, args.atp_file)
 
         # 2. Ler .pl4
         time, data = read_pl4(pl4_path)
@@ -472,7 +523,7 @@ def main() -> None:
             time, data,
             nodes=NODES,
             labels=NODE_LABELS,
-            out_path=OUTPUT_DIR / HTML_FILENAME,
+            out_path=pathlib.Path(args.out) / HTML_FILENAME,
             title=TITLE,
             t_unit=TIME_UNIT,
             t_scale=TIME_SCALE,
