@@ -4,14 +4,16 @@ Simulates how a high-voltage surge propagates along a coil modelled by
 distributed parameters (cascaded Pi or T sections).  The tool produces
 numerical results (CSV), static figures (PNG) and animated GIFs that
 clearly show travelling waves, reflections and the non-uniform initial
-voltage distribution.
+voltage distribution.  The same case is described as an ATP/EMTP deck
+(`surto_bobina.atp`) and the two solutions are cross-validated
+quantitatively (see *Validation* below).
 
 ---
 
 ## Quick start
 
 ```bash
-# 1. Install dependencies
+# 1. Install dependencies (tested versions pinned in requirements.txt)
 pip install -r requirements.txt
 
 # 2. Run with the bundled default case
@@ -19,20 +21,26 @@ python main.py
 
 # 3. (Optional) Use a custom configuration
 python main.py --config config/my_case.json
+
+# 4. Run the test suite
+python -m pytest
 ```
 
 All output lands in `output/`:
 
 ```
 output/
-  csv/           node_voltages.csv  section_currents.csv  summary.csv
-  figures/       io_voltage.png  section_voltages.png  max_voltage.png
-                 gradient.png  heatmap.png
-  t_model/       (same set of figures for the T model)
-  gifs/          voltage_wave_pi.gif   voltage_wave_t.gif
-                 heatmap_anim.gif
-                 comparison_capacitance.gif
-                 comparison_model.gif
+  csv/                node_voltages.csv  section_currents.csv
+                      summary_nodes.csv  summary_scalars.csv
+  run_metadata.json   provenance: config, git commit, versions, timestamp
+  figures/            io_voltage.png  section_voltages.png  max_voltage.png
+                      gradient.png  heatmap.png
+  t_model/            same set of csv/figures/metadata for the T model
+  low_c/  high_c/     csv + metadata for the capacitance variants
+  gifs/               voltage_wave_pi.gif   voltage_wave_t.gif
+                      heatmap_anim.gif
+                      comparison_capacitance.gif
+                      comparison_model.gif
 ```
 
 ---
@@ -41,26 +49,51 @@ output/
 
 ```
 project_root/
-  main.py                 entry point
-  requirements.txt
+  main.py                 entry point (4 scenarios: Pi, T, low-C, high-C)
+  run_atp.py              runs ATP on surto_bobina.atp, parses the .pl4,
+                          plots REAL ATP results (Plotly HTML)
+  surto_bobina.atp        ATP/EMTP deck of the default Pi case
+  requirements.txt        pinned, tested dependency versions
   config/
     default_case.json     editable simulation parameters
+  scripts/
+    plot_plotly.py        Plotly HTML/PNG views of the PYTHON simulation
+                          (replaces the old simulate_direct/save_images)
+    compare_python_atp.py quantitative Python x ATP cross-validation
   src/
     models/
       coil_section.py     CoilSection  — per-section data container
-      distributed_coil.py DistributedCoil — ODE right-hand side
+      distributed_coil.py DistributedCoil — ODE right-hand side (Pi and T)
     solvers/
-      time_domain_solver.py TimeDomainSolver — RK45 wrapper
+      time_domain_solver.py TimeDomainSolver — solve_ivp wrapper
     sources/
       impulse_source.py   ImpulseSource — double-exp / ramp-exp waveforms
     visualization/
       plot_generator.py   PlotGenerator — static PNG figures
       gif_generator.py    GifGenerator  — animated GIFs
     utils/
-      simulation_config.py SimulationConfig — parameter dataclass
+      simulation_config.py SimulationConfig — validated parameter dataclass
       result_processor.py  ResultProcessor — CSV export + derived quantities
-  output/                 created automatically at run time
+  tests/                  pytest suite (waveform IEC, regression, physics)
+  docs/
+    evidencias_atp_falha/ evidence of the original failed ATP run (KILL=6)
+                          and of the corrected, successful run
+  relatorio/              LaTeX technical report (Portuguese)
+  output/                 created automatically at run time (not versioned)
 ```
+
+---
+
+## Input data provenance
+
+The default-case parameters (`L_total = 10 mH`, `R_total = 5 Ω`,
+`C_total = 1 nF`, `N = 20`, 1.2/50 µs, 1 kV) are a **didactic,
+illustrative case**: round-number values chosen to produce clearly
+visible travelling-wave behaviour (surge impedance ≈ 3162 Ω, one-way
+travel time ≈ 3.16 µs).  They do **not** describe a specific physical
+coil.  For a real study, replace them with measured or design values and
+record their source in the config file kept under version control —
+every run stamps the full configuration into `run_metadata.json`.
 
 ---
 
@@ -130,37 +163,41 @@ KVL for section k (1 ≤ k ≤ N):
 
 ### T-model state vector  (size 2N for open circuit, 2N+1 for resistive)
 
-    x = [ V_m0, …, V_m(N−1),   α₀, …, α_{N−1} ]
+    x = [ V_m0, …, V_m(N−1),   i_junction_0, …, i_junction_{N−1} ]
 
-where V_mk is the voltage at the midpoint capacitor of section k, and αk
-is the current at junction k (between sections k−1 and k).
+where V_mk is the voltage at the midpoint capacitor of section k, and
+i_junction_k is the current at junction k (between sections k−1 and k).
+With resistive termination an extra state i_out (current through the
+last right half-inductor) is appended.
 
 KCL at midpoint k (0 ≤ k ≤ N−2):
 
-    C_sec · dV_mk/dt = α_k − α_{k+1}
+    C_sec · dV_mk/dt = i_junction_k − i_junction_{k+1}
 
 KCL at midpoint N−1 (open circuit):
 
-    C_sec · dV_m(N−1)/dt = α_{N−1}
+    C_sec · dV_m(N−1)/dt = i_junction_{N−1}
 
-KVL for α₀ (left half of section 0):
+KVL for i_junction_0 (left half of section 0):
 
-    (L/2) · dα₀/dt = V_src − V_m0 − (R/2) · α₀
+    (L/2) · d(i_junction_0)/dt = V_src − V_m0 − (R/2) · i_junction_0
 
-KVL for α_k (k ≥ 1, combined junction, full L and R):
+KVL for i_junction_k (k ≥ 1, combined junction, full L and R):
 
-    L · dα_k/dt = V_m(k−1) − V_mk − R · α_k
+    L · d(i_junction_k)/dt = V_m(k−1) − V_mk − R · i_junction_k
 
 > The junction voltage V_{j_k} cancels when the right-half equation of
 > section k−1 and the left-half equation of section k are added, because
-> both carry the same current α_k.
+> both carry the same current i_junction_k.
 
 ### Solver
 
-`scipy.integrate.solve_ivp(method='RK45')` with relative tolerance 1 × 10⁻⁷
-and absolute tolerance 1 × 10⁻¹².  The adaptive step-size keeps the local
-truncation error small while reporting results at equally-spaced intervals
-given by the `dt` parameter.
+`scipy.integrate.solve_ivp` with the method and tolerances taken from the
+configuration (`solver_method`, `rtol`, `atol`; defaults RK45,
+1 × 10⁻⁷, 1 × 10⁻¹²).  The adaptive step-size keeps the local truncation
+error small while reporting results at equally-spaced intervals given by
+the `dt` parameter.  For stiff variants (large C, very large N) switch
+`solver_method` to `"Radau"`.
 
 ---
 
@@ -170,17 +207,49 @@ given by the `dt` parameter.
 
     V(t) = V_amplitude · K · (e^{−αt} − e^{−βt})
 
-    α = ln(2) / T₂          (T₂ = tail time, 50 % decay)
-    β = 3.0   / T₁          (T₁ = front time, empirical)
+    α = ln(2) / T₂          (T₂ = tail time)
+    β = FRONT_COEFF / T₁    (T₁ = front time; FRONT_COEFF = 3.0, empirical)
     K = 1 / (e^{−αt_p} − e^{−βt_p})    normalisation to unit peak
 
 For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
 β ≈ 2.50 × 10⁶ s⁻¹.
 
+**Measured IEC 60060-1 parameters of the implemented waveform**
+(automated in `tests/test_impulse_source.py`):
+
+| Quantity | Definition | Result | IEC tolerance |
+|----------|------------|--------|---------------|
+| Front time T₁ | 1.67·(t₉₀ − t₃₀) | 1.193 µs (−0.6 %) | ±30 % |
+| Time to half-value T₂ | from virtual origin O₁ | 52.71 µs (+5.4 %) | ±20 % |
+| Peak | normalised | V_amplitude exactly | — |
+
 ### Ramp-exponential  (alternative)
 
     V(t) = V_amplitude · t / T₁         for t ≤ T₁
     V(t) = V_amplitude · e^{−(t−T₁)/T₂} for t > T₁
+
+---
+
+## Modelling hypotheses (read before using results)
+
+1. **Ideal voltage source (zero impedance).**  The input node voltage is
+   imposed; consequently the input half-capacitance C_sec/2 of the first
+   Pi section is connected directly across the source and carries no
+   state variable in the Python model.  The ATP deck *does* include that
+   capacitor at N0 — it draws current from the source but does not change
+   any node voltage, which is why both solutions agree.
+2. **α = ln2/T₂ is an approximation.**  It makes the *slow exponential
+   alone* halve at T₂; the composite waveform's IEC half-value time comes
+   out ≈ 52.7 µs (+5.4 %), within the ±20 % IEC tolerance.
+3. **Transfer ratio slightly above 2.**  The open-circuit reflection
+   doubles the incident wave; in a discrete LC ladder the dispersive
+   oscillations can add a few % on top (default case: 2.039).  Values
+   modestly above 2.0 are expected, not a numerical error.
+4. **T model, open circuit: output node = last midpoint.**  Both points
+   share one state variable, so the last spatial gap is structurally zero;
+   CSV reports it empty and the gradient plot omits it (see data
+   dictionary).
+5. **Linear, frequency-independent model** — see *Limitations*.
 
 ---
 
@@ -199,29 +268,75 @@ For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
 | `t_tail` | s | 50 × 10⁻⁶ | Impulse tail time T₂ |
 | `t_total` | s | 50 × 10⁻⁶ | Simulation duration |
 | `dt` | s | 10 × 10⁻⁹ | Reporting time step |
+| `solver_method` | — | "RK45" | scipy method (`"Radau"` for stiff cases) |
+| `rtol` / `atol` | — | 1e-7 / 1e-12 | solver tolerances |
 | `termination` | — | "open" | `"open"` or `"resistive"` |
 | `R_term` | Ω | 10⁶ | Load resistance (if `"resistive"`) |
+| `c_scenario_multipliers` | — | [0.1, 10] | C_total factors for the variant scenarios |
 | `output_dir` | — | "output" | Root folder for results |
+
+All parameters are **validated on load**: out-of-range values, unknown
+keys and invalid enumerations raise an error listing every problem;
+missing keys fall back to defaults with an explicit warning.
 
 ---
 
-## Output files
+## Output files — data dictionary
 
 | File | Contents |
 |------|----------|
-| `csv/node_voltages.csv` | Voltage at every node, every time step |
-| `csv/section_currents.csv` | Inductor current in every section |
-| `csv/summary.csv` | Peak voltage and peak gradient per node |
-| `figures/io_voltage.png` | Input vs output voltage time traces |
-| `figures/section_voltages.png` | Voltage at 6 selected nodes vs time |
-| `figures/max_voltage.png` | Bar chart of peak voltage per node |
-| `figures/gradient.png` | Bar chart of peak ΔV between adjacent nodes |
-| `figures/heatmap.png` | 2-D colour map: position × time |
-| `gifs/voltage_wave_pi.gif` | Animated wave propagation (Pi model) |
-| `gifs/voltage_wave_t.gif` | Animated wave propagation (T model) |
-| `gifs/heatmap_anim.gif` | Animated heatmap with time cursor |
-| `gifs/comparison_capacitance.gif` | Low-C vs high-C side-by-side |
-| `gifs/comparison_model.gif` | Pi vs T model side-by-side |
+| `csv/node_voltages.csv` | `time_s` + voltage per node. Pi: `V_source, V_node_1..N`. T: `V_source, V_mid_0..N-1, V_out` (open circuit: `V_out` duplicates `V_mid_N-1` — hypothesis 4) |
+| `csv/section_currents.csv` | `time_s` + currents. Pi: `I_sec_1..N`. T: `I_junction_0..N-1, I_out` (`I_out` ≡ 0 for open termination, by definition) |
+| `csv/summary_nodes.csv` | per node: `node_idx, position_norm, V_max_V, dV_max_V` (gap to next node; empty when there is no next node or the gap is structural — hypothesis 4) |
+| `csv/summary_scalars.csv` | `transfer_ratio`, `V_peak_in_V`, `V_peak_out_V` |
+| `run_metadata.json` | scenario name, ISO timestamp, git commit, library versions, full config |
+| `figures/*.png` | io_voltage, section_voltages, max_voltage, gradient, heatmap |
+| `gifs/*.gif` | wave animations and scenario comparisons |
+
+---
+
+## ATP cross-validation
+
+The repository carries an ATP/EMTP deck of the same default Pi case
+(`surto_bobina.atp`) and tooling to validate the Python solver against it.
+
+**Prerequisites:** an ATP installation (GNU `tpbigG.exe`).  The
+executable is located via `--atp-exe`, the `ATP_EXE` environment
+variable, or the default `C:\ATP\ATP\GNUATP\tpbigG.exe`.
+
+```bash
+# run ATP and plot the REAL ATP results (HTML)
+python run_atp.py
+
+# quantitative comparison (peaks, max/RMS error per node, figure)
+python scripts/compare_python_atp.py
+
+# Python-side Plotly views of the same nodes
+python scripts/plot_plotly.py
+```
+
+Latest validation (12 Jun 2026, deck rev. with type-15 source, L in mH,
+ICAT=1): node peaks agree within **0.03 %**; point-wise error within the
+0–30 µs dielectric-interest window ≤ **1.1 %** of the 1 kV peak; late-time
+point-wise differences (up to 9 % at 200 µs) are phase drift between
+ATP's fixed-step trapezoidal rule and adaptive RK45, not model
+divergence.  Full numbers: `output/atp/comparacao_python_atp.csv` and the
+report's Section 6.
+
+> **History note:** before 12 Jun 2026 the deck did not run at all
+> (KILL = 6, column misalignment; plus latent mH and source-type-15
+> errors).  The evidence and the corrected-run listing are preserved in
+> `docs/evidencias_atp_falha/`.
+
+---
+
+## Reproducing the report figures
+
+The LaTeX report lives in `relatorio/` (compile with
+`latexmk -pdf relatorio.tex`).  Static figures are copies of `output/`
+artifacts, renamed by provenance: `pi_*`/`t_*` from `main.py`,
+`python_*` from `scripts/plot_plotly.py`, `atp_*` only for figures
+containing real ATP data (`scripts/compare_python_atp.py`).
 
 ---
 
@@ -232,17 +347,17 @@ For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
   rest of the coil is at zero.  The energy is initially stored in the
   input capacitance.
 
-* **Travelling wave** — The wave front propagates at speed
-  v = 1 / √(L_total · C_total) along the coil.  For the default
-  parameters (L = 10 mH, C = 1 nF), the one-way travel time is
-  ≈ 3.2 µs.
+* **Travelling wave** — The wave front propagates with a one-way travel
+  time of √(L_total · C_total).  For the default parameters
+  (L = 10 mH, C = 1 nF) that is ≈ 3.2 µs.
 
 * **Reflection at open end** — With an open-circuit termination the
-  reflection coefficient is +1, so the reflected wave doubles the voltage
-  at the output end.
+  reflection coefficient is +1, so the reflected wave approximately
+  doubles the voltage at the output end (hypothesis 3).
 
 * **Surge impedance** — Z₀ = √(L / C) ≈ 3162 Ω for the default case.
-  Matching the termination to Z₀ eliminates reflections.
+  Matching the termination to Z₀ eliminates reflections (covered by an
+  automated test).
 
 ---
 
@@ -250,28 +365,40 @@ For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
 
 1. **No inter-winding (turn-to-turn) capacitance** — Including it would
    require additional state variables and complicates the topology
-   significantly.  The model assumes only shunt (winding-to-ground) capacitance.
+   significantly.  The model assumes only shunt (winding-to-ground)
+   capacitance.
 
-2. **Lumped-parameter approximation** — Accuracy improves with more sections
-   (larger N) but computation time grows linearly.
+2. **Lumped-parameter approximation** — Accuracy improves with more
+   sections (larger N); the test suite includes a convergence check
+   (N = 8 → 64).
 
 3. **Linear model** — Core saturation, frequency-dependent skin-effect
    resistance and dielectric losses are not included.
 
-4. **Double-exp front approximation** — The `β = 3/T₁` empirical relation
-   is accurate to within ±10 % for standard lightning and switching impulse
-   shapes.  For high accuracy use the exact IEC 60060-1 coefficients.
+4. **Double-exp front approximation** — β = FRONT_COEFF/T₁ reproduces the
+   IEC front time within −0.6 % for the 1.2/50 µs shape (measured, see
+   the waveform table above).  For exact IEC coefficients fit α, β
+   numerically.
+
+---
+
+## Validation summary
+
+| Check | Where | Result |
+|-------|-------|--------|
+| Waveform vs IEC 60060-1 | `tests/test_impulse_source.py` | T₁ −0.6 %, T₂ +5.4 % (within tolerance) |
+| Regression (default case) | `tests/test_regression_outputs.py` | Vpk_out Pi = 2039.3086 V, T = 2039.3090 V |
+| Energy conservation (R = 0) | `tests/test_model_physics.py` | drift < 10⁻⁵ |
+| Discretisation convergence | `tests/test_model_physics.py` | peak steps 110 → 75 → 14 V (N 8→64) |
+| Matched termination | `tests/test_model_physics.py` | no doubling at R_term = Z₀ (Pi and T) |
+| Independent solver (ATP) | `scripts/compare_python_atp.py` | peaks ≤ 0.03 %, window error ≤ 1.1 % |
 
 ---
 
 ## Dependencies
 
-| Package | Version |
-|---------|---------|
-| numpy | ≥ 1.24 |
-| scipy | ≥ 1.10 |
-| matplotlib | ≥ 3.7 |
-| imageio | ≥ 2.27 |
-| Pillow | ≥ 9.5 |
+Tested, pinned versions in `requirements.txt` (Python 3.13.5, Windows 11):
+numpy 2.4.2, scipy 1.17.1, matplotlib 3.10.8, imageio 2.37.3,
+Pillow 12.1.1, plotly 6.6.0, kaleido 1.2.0, pytest 9.0.2.
 
 Install with:  `pip install -r requirements.txt`
