@@ -56,7 +56,7 @@ class TimeDomainSolver:
         x0 = self.coil.initial_state()
 
         print(
-            f"  Solver  : RK45 | state size = {self.coil.state_size()} | "
+            f"  Solver  : {cfg.solver_method} | state size = {self.coil.state_size()} | "
             f"steps = {len(t_eval)}"
         )
 
@@ -64,10 +64,10 @@ class TimeDomainSolver:
             fun=lambda t, x: self.coil.derivatives(t, x, self.source),
             t_span=(0.0, t_eval[-1]),
             y0=x0,
-            method="RK45",
+            method=cfg.solver_method,
             t_eval=t_eval,
-            rtol=1e-7,
-            atol=1e-12,
+            rtol=cfg.rtol,
+            atol=cfg.atol,
             dense_output=False,
         )
 
