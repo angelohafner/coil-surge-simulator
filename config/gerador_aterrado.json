@@ -1,0 +1,21 @@
+{
+  "n_sections": 20,
+  "L_total": 0.01,
+  "R_total": 5.0,
+  "C_total": 1e-9,
+  "C_series_total": 4e-11,
+  "model_type": "pi",
+  "source_type": "double_exp",
+  "V_amplitude": 1000.0,
+  "t_front": 1.2e-6,
+  "t_tail": 50e-6,
+  "t_total": 2e-5,
+  "dt": 1e-8,
+  "solver_method": "RK45",
+  "rtol": 1e-7,
+  "atol": 1e-12,
+  "termination": "grounded",
+  "R_term": 1000000.0,
+  "c_scenario_multipliers": [0.1, 10.0],
+  "output_dir": "output"
+}
