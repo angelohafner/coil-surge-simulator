@@ -3,6 +3,7 @@
   "L_total": 0.01,
   "R_total": 5.0,
   "C_total": 1e-9,
+  "C_series_total": 0.0,
   "model_type": "pi",
   "source_type": "double_exp",
   "V_amplitude": 1000.0,

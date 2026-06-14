@@ -23,6 +23,10 @@ class SimulationConfig:
     L_total: float = 0.01         # total inductance [H]
     R_total: float = 5.0          # total series resistance [Ohm]
     C_total: float = 1e-9         # total capacitance to ground [F]
+    C_series_total: float = 0.0   # total series (turn-to-turn) capacitance [F];
+                                  # 0.0 = disabled (shunt-only model, default).
+                                  # When > 0 it couples adjacent nodes and makes
+                                  # the t=0+ distribution non-uniform (~cosh/sinh).
     model_type: str = "pi"        # "pi" or "t"
 
     # Impulse source parameters
@@ -71,6 +75,10 @@ class SimulationConfig:
 
         if not isinstance(self.R_total, (int, float)) or self.R_total < 0:
             problems.append(f"R_total deve ser >= 0 (recebido {self.R_total!r})")
+
+        if not isinstance(self.C_series_total, (int, float)) or self.C_series_total < 0:
+            problems.append(
+                f"C_series_total deve ser >= 0 (recebido {self.C_series_total!r})")
 
         if str(self.model_type).lower() not in VALID_MODEL_TYPES:
             problems.append(
@@ -150,6 +158,14 @@ class SimulationConfig:
             f"C_total     : {C*1e12:.3f} pF",
             f"Surge Z     : {Z0:.1f} Ohm",
             f"Travel time : {tau*1e6:.3f} us",
+        ]
+        if self.C_series_total > 0:
+            alpha = math.sqrt(C / self.C_series_total)
+            lines.append(
+                f"Series C    : {self.C_series_total*1e12:.3f} pF   "
+                f"alpha=sqrt(Cg/Cs)={alpha:.2f}"
+            )
+        lines += [
             f"Termination : {self.termination}",
             f"Impulse     : {self.V_amplitude:.0f} V  "
             f"{self.t_front*1e6:.1f}/{self.t_tail*1e6:.0f} us",

@@ -16,6 +16,26 @@ Pi-model (N sections):
   KVL section k (1..N): L_sec * dI_k/dt = V_{k-1} - V_k - R_sec * I_k
     with V_0 = V_source(t)
 
+  Series (turn-to-turn) capacitance (optional, config.C_series_total > 0):
+    A capacitor C_s_sec is placed across each section's series branch
+    (between node k-1 and node k), in parallel with L_sec/R_sec.  Its
+    displacement current C_s_sec * d(V_{k-1}-V_k)/dt couples neighbouring
+    nodes, so the nodal KCL is no longer diagonal:
+
+        C @ dV/dt = i_net(I) + C_s_sec * dV_src/dt * e_0
+
+    where C is a constant symmetric tridiagonal "mass" matrix (shunt on the
+    diagonal, -C_s_sec on the off-diagonals).  It is LU-factored once at
+    construction and back-solved each step.  With C_series_total == 0 the
+    matrix is diagonal and the original shunt-only path is used verbatim,
+    so results are bit-identical to the shunt-only model.
+
+    The end-to-end equivalent series capacitance is C_series_total; N
+    per-section capacitors in cascade give it, hence C_s_sec = N*C_series_total.
+    This makes the discrete second difference converge to V'' = alpha^2 V
+    with alpha = sqrt(C_total/C_series_total) (see initial_voltage_distribution
+    and tests/test_initial_distribution.py).
+
 T-model (N sections):
   Topology per section k (0-based):
     j_{k} --[L/2, R/2]--> m_k --[L/2, R/2]--> j_{k+1}
@@ -53,6 +73,8 @@ T-model (N sections):
 """
 
 import numpy as np
+from scipy.linalg import lu_factor, lu_solve
+
 from .coil_section import CoilSection
 from ..utils.simulation_config import SimulationConfig
 
@@ -78,10 +100,29 @@ class DistributedCoil:
         self.R_sec = self.R / self.n
         self.C_sec = self.C / self.n
 
+        # Series (turn-to-turn) capacitance.  See module docstring for the
+        # C_s_sec = N * C_series_total derivation.  Disabled (==0) by default,
+        # in which case the shunt-only KCL path is used verbatim.
+        self.C_series_total = config.C_series_total
+        self.has_series_c = self.C_series_total > 0.0
+        self.C_s_sec = self.n * self.C_series_total if self.has_series_c else 0.0
+        self.alpha_dist = (
+            float(np.sqrt(self.C / self.C_series_total))
+            if self.has_series_c else float("inf")
+        )
+
         self.sections = [
             CoilSection(k, self.L_sec, self.R_sec, self.C_sec, self.model_type)
             for k in range(self.n)
         ]
+
+        # Tridiagonal nodal capacitance "mass" matrix (Pi model only),
+        # LU-factored once and reused every derivative evaluation and by
+        # initial_voltage_distribution.
+        self._cap_lu = None
+        self._n_v = 0
+        if self.model_type == "pi" and self.has_series_c:
+            self._build_pi_series_capacitance()
 
     # ------------------------------------------------------------------
     # Public interface
@@ -144,6 +185,44 @@ class DistributedCoil:
             inner = (np.arange(n) + 0.5) / n
             return np.concatenate([[0.0], inner, [1.0]])
 
+    def initial_voltage_distribution(self, v_input: float = 1.0):
+        """Electrostatic voltage distribution at t=0+ (Pi model).
+
+        At the surge front the inductors block any current (I=0), so the
+        voltage splits across the purely capacitive network formed by the
+        series capacitance C_s between nodes and the shunt capacitance C_g
+        to the reference.  Integrating C @ dV/dt = C_s_sec*dV_src/dt*e_0 over
+        the infinitesimal front gives C @ V(0+) = C_s_sec * v_input * e_0, so
+        the same LU-factored mass matrix that drives the ODE also yields the
+        initial distribution.
+
+        Returns (positions, voltages) over all Pi nodes 0..N, with the input
+        node at v_input and the terminal set by the boundary condition.
+        Requires config.C_series_total > 0 (otherwise the distribution is
+        degenerate: all the voltage sits on the input node).
+        """
+        if self.model_type != "pi":
+            raise NotImplementedError(
+                "initial_voltage_distribution is implemented for the Pi model only.")
+        if not self.has_series_c:
+            raise ValueError(
+                "initial_voltage_distribution requires C_series_total > 0 "
+                "(without series capacitance the t=0+ distribution is degenerate).")
+
+        n = self.n
+        rhs = np.zeros(self._n_v)
+        rhs[0] = self.C_s_sec * v_input
+        v_active = lu_solve(self._cap_lu, rhs)
+
+        v_full = np.empty(n + 1)
+        v_full[0] = v_input
+        if self.termination == "grounded":
+            v_full[1:n] = v_active          # V_1 .. V_{N-1}
+            v_full[n] = 0.0
+        else:
+            v_full[1:] = v_active           # V_1 .. V_N
+        return self.node_positions(), v_full
+
     def section_currents(self, x: np.ndarray) -> np.ndarray:
         """
         Return inductor currents.
@@ -160,6 +239,58 @@ class DistributedCoil:
             else:
                 i_out = np.array([x[2 * n]])
             return np.concatenate([i_junction, i_out])
+
+    # ------------------------------------------------------------------
+    # Series-capacitance helpers (Pi model)
+    # ------------------------------------------------------------------
+
+    def _build_pi_series_capacitance(self) -> None:
+        """Assemble and LU-factor the tridiagonal nodal capacitance matrix.
+
+        Active voltage nodes depend on the termination: 1..N for open/
+        resistive (V_N is a state), 1..N-1 for grounded (V_N is pinned to 0).
+        Diagonal = shunt capacitance + C_s_sec * (number of series branches
+        touching the node); off-diagonals = -C_s_sec between adjacent active
+        nodes.  The branch from the input node to node 1, and (grounded) from
+        node N-1 to the reference, add to the diagonal but have no active
+        off-diagonal partner.
+        """
+        n = self.n
+        C, Cs = self.C_sec, self.C_s_sec
+
+        if self.termination == "grounded":
+            n_v = n - 1                      # V_1 .. V_{N-1}; V_N == 0
+            shunt = np.full(n_v, C)
+            series_count = np.full(n_v, 2.0) if n_v > 0 else np.zeros(0)
+        else:
+            n_v = n                          # V_1 .. V_N
+            shunt = np.full(n_v, C)
+            shunt[-1] = C / 2.0              # half Pi end-cap at the output node
+            series_count = np.full(n_v, 2.0)
+            series_count[-1] = 1.0           # node N has no section N+1
+
+        self._n_v = n_v
+        if n_v < 1:                          # degenerate (e.g. N=1 grounded)
+            self._cap_lu = None
+            return
+
+        diag = shunt + Cs * series_count
+        cap = np.diag(diag)
+        if n_v > 1:
+            off = -Cs * np.ones(n_v - 1)
+            cap += np.diag(off, 1) + np.diag(off, -1)
+        self._cap_matrix = cap
+        self._cap_lu = lu_factor(cap)
+
+    @staticmethod
+    def _source_derivative(source_func, t: float) -> float:
+        """dV_src/dt: analytic when the source exposes derivative(t),
+        otherwise a central finite difference as a safe fallback."""
+        deriv = getattr(source_func, "derivative", None)
+        if deriv is not None:
+            return float(deriv(t))
+        h = 1e-11
+        return float((source_func(t + h) - source_func(t - h)) / (2.0 * h))
 
     # ------------------------------------------------------------------
     # Pi-model ODE
@@ -185,10 +316,39 @@ class DistributedCoil:
         V_prev[1:] = V_for_kvl[:-1]
         dxdt[n:] = (V_prev - V_for_kvl - R * I) / L
 
-        # KCL: C_node * dV_k/dt = I_k - I_{k+1}
+        # KCL.  Without series capacitance the nodal capacitance is diagonal
+        # and the original shunt-only path runs verbatim (keeps the regression
+        # bit-identical).  With series capacitance the nodes are coupled, so we
+        # back-solve the pre-factored tridiagonal mass matrix instead.
+        if not self.has_series_c:
+            # KCL: C_node * dV_k/dt = I_k - I_{k+1}
+            if self.termination == "grounded":
+                if n > 1:
+                    dxdt[: n - 1] = (I[: n - 1] - I[1:]) / C
+                dxdt[n - 1] = 0.0
+            else:
+                I_next = np.empty(n)
+                I_next[:-1] = I[1:]
+                if self.termination == "open":
+                    I_next[-1] = 0.0
+                else:
+                    I_next[-1] = V[-1] / self.R_term
+
+                C_node = np.full(n, C)
+                C_node[-1] = C / 2.0   # half Pi end-cap at output terminal
+
+                dxdt[:n] = (I - I_next) / C_node
+
+            return dxdt
+
+        # KCL with series capacitance:
+        #   C @ dV/dt = i_net(I) + C_s_sec * dV_src/dt * e_0
+        dV_src = self._source_derivative(source_func, t)
         if self.termination == "grounded":
-            if n > 1:
-                dxdt[: n - 1] = (I[: n - 1] - I[1:]) / C
+            if self._n_v >= 1:
+                i_net = (I[: n - 1] - I[1:]).astype(float)   # copy: don't touch x
+                i_net[0] += self.C_s_sec * dV_src
+                dxdt[: n - 1] = lu_solve(self._cap_lu, i_net)
             dxdt[n - 1] = 0.0
         else:
             I_next = np.empty(n)
@@ -198,10 +358,9 @@ class DistributedCoil:
             else:
                 I_next[-1] = V[-1] / self.R_term
 
-            C_node = np.full(n, C)
-            C_node[-1] = C / 2.0   # half Pi end-cap at output terminal
-
-            dxdt[:n] = (I - I_next) / C_node
+            i_net = (I - I_next).astype(float)               # copy: don't touch x
+            i_net[0] += self.C_s_sec * dV_src
+            dxdt[:n] = lu_solve(self._cap_lu, i_net)
 
         return dxdt
 

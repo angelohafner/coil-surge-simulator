@@ -87,6 +87,30 @@ class ImpulseSource:
                 return self.amplitude * t / self.t_front
             return self.amplitude * np.exp(-(t - self.t_front) / self.t_tail)
 
+    def derivative(self, t: float) -> float:
+        """Analytic time-derivative dV/dt at scalar time t [s].
+
+        Needed when the coil model includes series capacitance: the
+        series branch tying the input node to the source injects a
+        current C_s * dV_src/dt into the first node.
+        """
+        if t < 0.0:
+            return 0.0
+        if self.source_type == "double_exp":
+            return float(
+                self.amplitude
+                * self._K
+                * (self.beta * np.exp(-self.beta * t)
+                   - self.alpha * np.exp(-self.alpha * t))
+            )
+        else:  # ramp_exp
+            if t <= self.t_front:
+                return self.amplitude / self.t_front
+            return float(
+                -self.amplitude / self.t_tail
+                * np.exp(-(t - self.t_front) / self.t_tail)
+            )
+
     def evaluate_array(self, t_array: np.ndarray) -> np.ndarray:
         """Vectorised evaluation over a time array."""
         if self.source_type == "double_exp":
