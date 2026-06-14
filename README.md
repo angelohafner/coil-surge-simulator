@@ -262,6 +262,7 @@ For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
 | `L_total` | H | 0.01 | Total coil inductance |
 | `R_total` | Ω | 5.0 | Total series resistance |
 | `C_total` | F | 1 × 10⁻⁹ | Total capacitance to ground |
+| `C_series_total` | F | 0 | Total series (turn-to-turn) capacitance, end-to-end. `0` disables it (shunt-only model, default). When `> 0` it couples adjacent nodes and makes the t = 0⁺ distribution non-uniform (∝ cosh/sinh, with α = √(`C_total`/`C_series_total`)). Pi model only. |
 | `model_type` | — | "pi" | `"pi"` or `"t"` |
 | `source_type` | — | "double_exp" | `"double_exp"` or `"ramp_exp"` |
 | `V_amplitude` | V | 1000 | Peak source voltage |
@@ -352,15 +353,56 @@ containing real ATP data (`scripts/compare_python_atp.py`).
 
 ## Manim technical presentation
 
-`manim_presentation.py` builds a didactic Manim Community presentation from
-the generated project data: the default configuration, Pi/T voltage CSVs,
-summary scalars and Python x ATP comparison table.  Regenerate the data first
-if needed:
+`manim_presentation.py` builds a didactic Manim Community presentation that
+runs the real model on the fly (it re-simulates the Pi cases from
+`config/default_case.json` instead of reading pre-made CSVs). The flow tells
+the surge story end to end, focused on the shorted-end (grounded) case:
+
+1. **Title** — a surge entering a distributed coil.
+2. **Impulse source** — the 1.2/50 µs waveform and its notable points.
+3. **Circuit** — the grounded-end ladder (TikZ).
+4. **Initial distribution (t = 0⁺)** — at the surge front the inductors block
+   current, so the coil splits the voltage like a capacitive divider. The
+   slide sweeps the winding distribution factor
+   `α = √(C_total/C_series_total)` from ~0.6 (uniform) up to 10 (crowded onto
+   the entrance turns), reading out how much of the voltage the first 10 % of
+   the winding holds, then **settles on `α = 5`** — the value carried into the
+   next slide. The curve comes straight from
+   `DistributedCoil.initial_voltage_distribution()` (the series/turn-to-turn
+   capacitance added in *Limitations* item 1).
+5. **Initial → final distribution** — the grounded time-domain animation,
+   now solved **with** series capacitance (`α = 5`): the profile starts
+   crowded at the entrance and relaxes toward the uniform (final) reference,
+   while the per-section local-`ΔV` bars show the stress migrating from the
+   entrance into the winding interior.
 
 ```bash
-python main.py
-python scripts/compare_python_atp.py
+python main.py                       # optional: refresh output/ artifacts
 manim -pql --fps 15 manim_presentation.py SurgePresentation
+```
+
+Iterate on a single slide without rendering the whole deck (the preview
+classes use a short run time):
+
+```bash
+manim -pql manim_presentation.py InitialDistributionScene   # the t=0+ slide
+manim -pql manim_presentation.py GroundedReturnPreview      # the time-domain slide
+```
+
+The distributed-circuit slides use TikZ sources in `assets/`.
+`tikz_ladder_grounded_circuit.tex` is the active visual for the shorted-end
+presentation. `tikz_ladder_circuit.tex` is kept for comparison or future
+open-end variants. Mathematical symbols and units are rendered with LaTeX
+where appropriate, while ordinary explanatory text uses native Manim text with
+a standard system font for readability at 480p. Regenerate the PNG assets
+after editing the TikZ files with:
+
+```bash
+cd assets
+pdflatex -interaction=nonstopmode -halt-on-error tikz_ladder_circuit.tex
+pdftocairo -png -transp -r 300 -singlefile tikz_ladder_circuit.pdf tikz_ladder_circuit
+pdflatex -interaction=nonstopmode -halt-on-error tikz_ladder_grounded_circuit.tex
+pdftocairo -png -transp -r 300 -singlefile tikz_ladder_grounded_circuit.pdf tikz_ladder_grounded_circuit
 ```
 
 ---
@@ -388,10 +430,15 @@ manim -pql --fps 15 manim_presentation.py SurgePresentation
 
 ## Limitations
 
-1. **No inter-winding (turn-to-turn) capacitance** — Including it would
-   require additional state variables and complicates the topology
-   significantly.  The model assumes only shunt (winding-to-ground)
-   capacitance.
+1. **Inter-winding (turn-to-turn) capacitance is optional** — By default the
+   model uses only shunt (winding-to-ground) capacitance.  Set
+   `C_series_total > 0` (Pi model) to add a series capacitor across each
+   section's R–L branch; this couples adjacent nodes (the nodal capacitance
+   matrix becomes tridiagonal, LU-factored once) and reproduces the
+   non-uniform initial voltage distribution `V(x) ∝ cosh/sinh(α(1−x))` with
+   `α = √(C_total/C_series_total)` — the mechanism that overstresses the
+   entrance turns.  Validated analytically in
+   `tests/test_initial_distribution.py`.
 
 2. **Lumped-parameter approximation** — Accuracy improves with more
    sections (larger N); the test suite includes a convergence check
