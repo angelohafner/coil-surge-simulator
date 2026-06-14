@@ -31,6 +31,8 @@ relatorio/relatorio.pdf
 # Frames extraídos dos GIFs para o pacote animate (regeneráveis via ffmpeg,
 # comando documentado em relatorio/build_notes.tex)
 relatorio/frames/
+# PDF intermediário do TikZ em assets (regenerável; o .png é a saída versionada)
+assets/*.pdf
 
 # Arquivos temporários e de log do ATP
 *.tmp

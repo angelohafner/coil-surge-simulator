@@ -41,8 +41,8 @@ SOLENOID_IMAGE_PATH = ROOT / "assets" / "solenoid_reference.png"
 LADDER_TIKZ_IMAGE_PATH = ROOT / "assets" / "tikz_ladder_circuit.png"
 GROUNDED_LADDER_TIKZ_IMAGE_PATH = ROOT / "assets" / "tikz_ladder_grounded_circuit.png"
 STATIC_TIME_WINDOW_US = 100.0
-ANIMATION_TIME_WINDOW_US = 20.0
-ANIMATION_PROFILE_RUN_TIME = 240.0
+ANIMATION_TIME_WINDOW_US = 10.0
+ANIMATION_PROFILE_RUN_TIME = 30.0
 TIME_DOMAIN_ALPHA = 5.0  # winding distribution factor for the grounded time-domain
                          # animation (C_series_total = C_total / alpha^2): the surge
                          # starts crowded at the entrance and relaxes toward uniform.
@@ -284,7 +284,7 @@ class VisualFactory:
         )
         return Group(visual, guide_path)
 
-    def surge_arrow(self, text: str = "1.2/50 us surge") -> VGroup:
+    def surge_arrow(self, text: str = "1.2/50 μs surge") -> VGroup:
         arrow = Arrow(LEFT * 2.7, LEFT * 0.55, color=ORANGE, buff=0.0, stroke_width=7)
         label = Text(text, font_size=19, color=ORANGE, weight=BOLD)
         label.next_to(arrow, UP, buff=0.12)
@@ -797,11 +797,15 @@ class SurgePresentation(Scene):
             Text("series resistance", font_size=13, color=MUTED),
             MathTex("L", font_size=24, color=CYAN),
             Text("series inductance", font_size=13, color=MUTED),
-            MathTex("C", font_size=24, color=YELLOW),
+            MathTex("C_g", font_size=24, color=YELLOW),
             Text("shunt capacitance", font_size=13, color=MUTED),
+            MathTex("C_s", font_size=24, color=PURPLE),
+            Text("turn-to-turn", font_size=13, color=MUTED),
         ).arrange(RIGHT, buff=0.16)
         legend.next_to(ladder, DOWN, buff=0.18)
 
+        c_total = float(cfg['C_total'])
+        c_series = c_total / (TIME_DOMAIN_ALPHA ** 2)
         per_section = VGroup(
             MathTex(
                 rf"L_{{\mathrm{{total}}}} = {float(cfg['L_total']) * 1e3:.1f}\,\mathrm{{mH}}",
@@ -814,12 +818,18 @@ class SurgePresentation(Scene):
                 color=ORANGE,
             ),
             MathTex(
-                rf"C_{{\mathrm{{total}}}} = {float(cfg['C_total']) * 1e9:.1f}\,\mathrm{{nF}}",
+                rf"C_g = {c_total * 1e9:.1f}\,\mathrm{{nF}}",
                 font_size=26,
                 color=YELLOW,
             ),
+            MathTex(
+                rf"C_s = {c_series * 1e12:.1f}\,\mathrm{{pF}}"
+                rf"\quad(\alpha = {TIME_DOMAIN_ALPHA:.0f})",
+                font_size=26,
+                color=PURPLE,
+            ),
             Text("State-space ODE solved with scipy", font_size=16, color=MUTED),
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
         per_section.to_edge(DOWN, buff=0.45).shift(LEFT * 3.3)
 
         source_statement = VGroup(
@@ -1034,7 +1044,7 @@ class SurgePresentation(Scene):
     def source_scene(self) -> None:
         heading = self.factory.heading(
             "Impulse Source",
-            "1.2/50 us waveform used as the input voltage source",
+            "1.2/50 μs waveform used as the input voltage source",
         )
         cfg = self.data.config
         source = ImpulseSource(
@@ -1117,7 +1127,7 @@ class SurgePresentation(Scene):
         def callout(title: str, detail_tex: str, color: str, width: float = 2.05) -> VGroup:
             box = RoundedRectangle(
                 width=width,
-                height=0.68,
+                height=0.86,
                 corner_radius=0.08,
                 fill_color=BACKGROUND,
                 fill_opacity=0.86,
@@ -1126,23 +1136,23 @@ class SurgePresentation(Scene):
             )
             title_mob = Text(title, font_size=13, color=color, weight=BOLD)
             detail_mob = MathTex(detail_tex, font_size=21, color=TEXT)
-            text_group = VGroup(title_mob, detail_mob).arrange(DOWN, aligned_edge=LEFT, buff=0.01)
+            text_group = VGroup(title_mob, detail_mob).arrange(DOWN, aligned_edge=LEFT, buff=0.18)
             text_group.move_to(box.get_center())
             group = VGroup(box, text_group)
             group.set_z_index(6)
             return group
 
         peak_label = callout("Peak", r"100\%\ \mathrm{reference}", YELLOW, width=2.10)
-        peak_label.move_to(axes.c2p(27.0, 93.0))
+        peak_label.move_to(axes.c2p(42.0, 93.0))
         front_label = callout("Front time", r"T_1 = 1.2\,\mu\mathrm{s}", CYAN, width=2.25)
-        front_label.move_to(axes.c2p(20.0, 32.0))
+        front_label.move_to(axes.c2p(15.0, 55.0))
         tail_label = callout("Tail time", r"T_2 = 50\,\mu\mathrm{s}", BLUE, width=2.15)
-        tail_label.move_to(axes.c2p(73.0, 72.0))
+        tail_label.move_to(axes.c2p(80.0, 55.0))
 
         def note_card(title: str, detail: str, color: str) -> VGroup:
             box = RoundedRectangle(
                 width=3.55,
-                height=0.58,
+                height=0.74,
                 corner_radius=0.07,
                 fill_color=BACKGROUND,
                 fill_opacity=0.48,
@@ -1151,14 +1161,14 @@ class SurgePresentation(Scene):
             )
             title_mob = Text(title, font_size=12, color=color, weight=BOLD)
             detail_mob = Text(detail, font_size=11, color=MUTED)
-            text_group = VGroup(title_mob, detail_mob).arrange(DOWN, aligned_edge=LEFT, buff=0.02)
+            text_group = VGroup(title_mob, detail_mob).arrange(DOWN, aligned_edge=LEFT, buff=0.16)
             text_group.move_to(box.get_center())
             return VGroup(box, text_group)
 
         definition = VGroup(
             note_card("Fast front", "First sections charge first.", CYAN),
             note_card("Tail", "Voltage remains during redistribution.", BLUE),
-        ).arrange(RIGHT, buff=0.24)
+        ).arrange(RIGHT, buff=0.50)
         definition.next_to(axes, DOWN, buff=0.36).align_to(axes, LEFT)
         source_badge = VGroup(
             RoundedRectangle(
