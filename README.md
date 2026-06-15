@@ -264,7 +264,7 @@ For a standard **1.2 / 50 µs lightning impulse**: α ≈ 1.39 × 10⁴ s⁻¹,
 | `C_total` | F | 1 × 10⁻⁹ | Total capacitance to ground |
 | `C_series_total` | F | 0 | Total series (turn-to-turn) capacitance, end-to-end. `0` disables it (shunt-only model, default). When `> 0` it couples adjacent nodes and makes the t = 0⁺ distribution non-uniform (∝ cosh/sinh, with α = √(`C_total`/`C_series_total`)). Pi model only. |
 | `model_type` | — | "pi" | `"pi"` or `"t"` |
-| `source_type` | — | "double_exp" | `"double_exp"` or `"ramp_exp"` |
+| `source_type` | — | "double_exp" | `"double_exp"`, `"ramp_exp"`, or `"square"` (20 kHz PWM; see the square-wave Manim variant) |
 | `V_amplitude` | V | 1000 | Peak source voltage |
 | `t_front` | s | 1.2 × 10⁻⁶ | Impulse front time T₁ |
 | `t_tail` | s | 50 × 10⁻⁶ | Impulse tail time T₂ |
@@ -403,6 +403,25 @@ pdflatex -interaction=nonstopmode -halt-on-error tikz_ladder_circuit.tex
 pdftocairo -png -transp -r 300 -singlefile tikz_ladder_circuit.pdf tikz_ladder_circuit
 pdflatex -interaction=nonstopmode -halt-on-error tikz_ladder_grounded_circuit.tex
 pdftocairo -png -transp -r 300 -singlefile tikz_ladder_grounded_circuit.pdf tikz_ladder_grounded_circuit
+```
+
+### Square-wave (PWM) variant — `manim_square_wave.py`
+
+`manim_square_wave.py` builds an **analogous presentation for a 20 kHz square wave**
+(`SquareWavePresentation`), reusing `manim_presentation.py`'s `VisualFactory`/helpers
+without modifying it. The physics: a square wave is the output of a PWM inverter, and
+**every switching edge is a mini-surge** — its fast `dv/dt` crowds the voltage onto the
+entrance turns exactly like the 1.2/50 µs impulse (same `sinh(α(1−x))/sinh(α)`, α = 5).
+The difference is **repetition**: the impulse does it once, the square wave 40000×/s,
+the insulation-ageing mechanism in inverter-fed machines. The time-domain slide animates
+the profile re-crowding and relaxing at each edge, with the per-section local-`ΔV` bars
+(same as the surge presentation). It is driven by the `source_type="square"` waveform
+added to `ImpulseSource` (unipolar trapezoidal, edge time `t_front`, frequency 20 kHz).
+
+```bash
+manim -ql manim_square_wave.py SquareWavePresentation        # quick preview
+manim manim_square_wave.py SquareWavePresentation            # 1080p60
+manim -ql manim_square_wave.py SquareEvolutionPreview        # just the time-domain slide
 ```
 
 ---

@@ -24,6 +24,13 @@ O projeto tem **quatro produtos** que contam a mesma história:
    comportamento físico da bobina, com animações embutidas (pacote `animate`).
 4. **Deck ATP/EMTP** — o mesmo caso em ATP, para **validação cruzada** independente.
 
+Há ainda uma apresentação **análoga para onda quadrada PWM de 20 kHz**
+(`manim_square_wave.py`, `SquareWavePresentation`): cada borda do chaveamento é um
+mini-surto que reconcentra a tensão na entrada (mesma `sinh`, α=5) — o estresse
+repetitivo de isolamento em máquinas alimentadas por inversor. Reutiliza a
+`VisualFactory`/helpers de `manim_presentation.py` (herda `SurgePresentation`) sem
+modificá-lo, e usa a fonte `source_type="square"` do `ImpulseSource`.
+
 ## Dois casos físicos (não confundir)
 
 - **Caso default / regressão** (`config/default_case.json`, `surto_bobina.atp`):
@@ -57,8 +64,9 @@ python run_atp.py --atp-file surto_bobina_gerador.atp --out output/atp_gerador
 python scripts/compare_python_atp.py --config config/gerador_aterrado.json \
        --pl4 surto_bobina_gerador.pl4 --out output/atp_gerador
 
-# Apresentação Manim (manim.cfg ja fixa 1080p60; use -ql para previa rapida)
+# Apresentações Manim (manim.cfg ja fixa 1080p60; use -ql para previa rapida)
 python -m manim render manim_presentation.py SurgePresentation
+python -m manim render manim_square_wave.py SquareWavePresentation   # onda quadrada PWM 20 kHz
 
 # Relatório LaTeX (figuras + animações + PDF)
 python scripts/gen_figuras_relatorio.py
