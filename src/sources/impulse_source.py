@@ -39,17 +39,21 @@ class ImpulseSource:
         amplitude: float = 1000.0,
         t_front: float = 1.2e-6,
         t_tail: float = 50e-6,
+        frequency: float = 20000.0,
     ):
         self.source_type = source_type.lower()
         self.amplitude = amplitude
         self.t_front = t_front
         self.t_tail = t_tail
+        self.frequency = frequency
 
-        if self.source_type not in ("double_exp", "ramp_exp"):
+        if self.source_type not in ("double_exp", "ramp_exp", "square"):
             raise ValueError(f"Unknown source_type '{source_type}'.")
 
         if self.source_type == "double_exp":
             self._setup_double_exp()
+        elif self.source_type == "square":
+            self._setup_square()
 
     # ------------------------------------------------------------------
     # Setup helpers
@@ -68,6 +72,40 @@ class ImpulseSource:
         f_peak = np.exp(-self.alpha * t_peak) - np.exp(-self.beta * t_peak)
         self._K = 1.0 / f_peak   # multiply waveform by amplitude * _K
 
+    def _setup_square(self):
+        # Onda quadrada unipolar 0 -> amplitude, periodo T = 1/frequency, com
+        # bordas trapezoidais de duracao t_rise (= t_front).  dv/dt = A/t_rise.
+        if self.frequency <= 0.0:
+            raise ValueError("square source requires frequency > 0.")
+        self._T = 1.0 / self.frequency
+        self._t_rise = self.t_front
+        if self._t_rise <= 0.0 or self._t_rise >= self._T / 2.0:
+            raise ValueError(
+                "square source requires 0 < t_front (edge time) < T/2."
+            )
+
+    def _square_value(self, t: float) -> float:
+        A, T, tr = self.amplitude, self._T, self._t_rise
+        tl = t - np.floor(t / T) * T          # t modulo T (robusto para float)
+        if tl < tr:
+            return float(A * tl / tr)         # borda de subida
+        if tl < T / 2.0:
+            return float(A)                   # plato alto
+        if tl < T / 2.0 + tr:
+            return float(A * (1.0 - (tl - T / 2.0) / tr))   # borda de descida
+        return 0.0                            # plato baixo
+
+    def _square_deriv(self, t: float) -> float:
+        A, T, tr = self.amplitude, self._T, self._t_rise
+        tl = t - np.floor(t / T) * T
+        if tl < tr:
+            return float(A / tr)
+        if tl < T / 2.0:
+            return 0.0
+        if tl < T / 2.0 + tr:
+            return float(-A / tr)
+        return 0.0
+
     # ------------------------------------------------------------------
     # Evaluation
     # ------------------------------------------------------------------
@@ -82,6 +120,8 @@ class ImpulseSource:
                 * self._K
                 * (np.exp(-self.alpha * t) - np.exp(-self.beta * t))
             )
+        elif self.source_type == "square":
+            return self._square_value(t)
         else:  # ramp_exp
             if t <= self.t_front:
                 return self.amplitude * t / self.t_front
@@ -103,6 +143,8 @@ class ImpulseSource:
                 * (self.beta * np.exp(-self.beta * t)
                    - self.alpha * np.exp(-self.alpha * t))
             )
+        elif self.source_type == "square":
+            return self._square_deriv(t)
         else:  # ramp_exp
             if t <= self.t_front:
                 return self.amplitude / self.t_front
@@ -120,6 +162,19 @@ class ImpulseSource:
             )
             v[t < 0] = 0.0
             return v
+        elif self.source_type == "square":
+            t = np.asarray(t_array, dtype=float)
+            A, T, tr = self.amplitude, self._T, self._t_rise
+            tl = t - np.floor(t / T) * T
+            v = np.zeros_like(t)
+            rise = tl < tr
+            high = (tl >= tr) & (tl < T / 2.0)
+            fall = (tl >= T / 2.0) & (tl < T / 2.0 + tr)
+            v[rise] = A * tl[rise] / tr
+            v[high] = A
+            v[fall] = A * (1.0 - (tl[fall] - T / 2.0) / tr)
+            v[t < 0] = 0.0
+            return v
         else:
             t = np.asarray(t_array, dtype=float)
             v = np.where(
@@ -134,6 +189,8 @@ class ImpulseSource:
     def peak_time(self) -> float:
         if self.source_type == "double_exp":
             return np.log(self.beta / self.alpha) / (self.beta - self.alpha)
+        if self.source_type == "square":
+            return self._t_rise
         return self.t_front
 
     def __repr__(self) -> str:

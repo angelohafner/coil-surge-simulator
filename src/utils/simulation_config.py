@@ -12,7 +12,7 @@ import warnings
 from dataclasses import dataclass, asdict, field, fields
 
 VALID_MODEL_TYPES = ("pi", "t")
-VALID_SOURCE_TYPES = ("double_exp", "ramp_exp")
+VALID_SOURCE_TYPES = ("double_exp", "ramp_exp", "square")
 VALID_TERMINATIONS = ("open", "resistive", "grounded")
 
 
