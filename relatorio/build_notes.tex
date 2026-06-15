@@ -5,15 +5,20 @@ série, copiado de \codefile{assets/tikz\_ladder\_grounded\_circuit.png} (mesmo 
 apresentação). A Figura~\ref{fig:dist-inicial} é gerada por \codefile{scripts/gen\_figuras\_relatorio.py}
 a partir do modelo (\codefile{initial\_voltage\_distribution}). A Figura~\ref{fig:atp-comparacao} é a
 saída de \codefile{scripts/compare\_python\_atp.py} para o caso do gerador, copiada de
-\codefile{output/atp\_gerador/comparacao\_python\_atp.png} (contém dados reais do ATP).
+\codefile{output/atp\_gerador/comparacao\_python\_atp.png} (contém dados reais do ATP). A
+Figura~\ref{fig:onda-fonte} (fonte de onda quadrada PWM) também é gerada por
+\codefile{scripts/gen\_figuras\_relatorio.py}.
 
-\paragraph{Animações.} As animações (Seção~\ref{sec:animacoes}) são trechos das cenas
-\codefile{InitialDistributionScene} e \codefile{GroundedReturnPreview} da apresentação
-\codefile{manim\_presentation.py}, renderizadas em 720p. Cada \codefile{.mp4} foi convertido em uma
-sequência de frames PNG com \codefile{ffmpeg}, incorporada via \codefile{animate}
-(\codefile{animategraphics}). Para manter o PDF em tamanho razoável, os frames são amostrados a baixo
-\emph{fps} e largura de \SI{800}{px}: \codefile{frames/manim\_dist\_inicial} (\(\approx\)81 frames, \SI{6}{fps})
-e \codefile{frames/manim\_evolucao} (\(\approx\)90 frames, \SI{8}{fps}). A numeração começa em
+\paragraph{Animações.} As animações são trechos das cenas standalone do Manim, renderizadas em
+720p e convertidas em sequências de frames PNG com \codefile{ffmpeg}, incorporadas via
+\codefile{animate} (\codefile{animategraphics}). As do caso impulso (Seção~\ref{sec:animacoes})
+vêm de \codefile{InitialDistributionScene} e \codefile{GroundedReturnPreview}
+(\codefile{manim\_presentation.py}): \codefile{frames/manim\_dist\_inicial} (\(\approx\)81 frames,
+\SI{6}{fps}) e \codefile{frames/manim\_evolucao} (\(\approx\)90 frames, \SI{8}{fps}). A da onda
+quadrada (Seção~\ref{sec:onda-quadrada}) vem de \codefile{SquareEvolutionShort}
+(\codefile{manim\_square\_wave.py}, varredura curta de \SI{9}{\second}):
+\codefile{frames/manim\_quadrada} (\(\approx\)91 frames, \SI{8}{fps}). Para manter o PDF em tamanho
+razoável os frames são amostrados a baixo \emph{fps} e largura de \SI{800}{px}; a numeração começa em
 \codefile{frame-1.png} (sem zero-padding), faixa esperada por \codefile{animategraphics}.
 
 Comando de extração (largura \SI{800}{px}, exemplo da animação de evolução):

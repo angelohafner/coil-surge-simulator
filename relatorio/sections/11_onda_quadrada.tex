@@ -1,0 +1,42 @@
+\section{Estresse repetitivo: a onda quadrada do inversor}
+\label{sec:onda-quadrada}
+
+O mesmo enrolamento aterrado, quando alimentado por um \emph{inversor}, não vê um único
+impulso, e sim uma \textbf{onda quadrada} de chaveamento PWM --- aqui a \SI{20}{\kilo\hertz}
+(Figura~\ref{fig:onda-fonte}). O ponto central é que \emph{cada borda} de chaveamento é uma
+frente rápida: para ela o enrolamento responde como a mesma rede capacitiva da
+Seção~\ref{sec:distribuicao}, e a tensão se reconcentra na entrada segundo a mesma
+distribuição inicial da Equação~\eqref{eq:sinh}, com o mesmo $\adist = 5$.
+
+\staticfigure{0.82}{onda_quadrada_fonte.png}{Fonte de onda quadrada PWM de
+\SI{20}{\kilo\hertz} (período $T = \SI{50}{\micro\second}$), com bordas de
+$t_r = \SI{0.2}{\micro\second}$. Cada borda é um mini-surto para o enrolamento.}{fig:onda-fonte}
+
+A diferença em relação ao impulso isolado é a \textbf{repetição}: o impulso atmosférico
+reconcentra a tensão na entrada uma única vez, enquanto a onda quadrada de
+\SI{20}{\kilo\hertz} o faz a cada borda --- cerca de $40\,000$ vezes por segundo (duas
+bordas por período). A Figura~\ref{fig:anim-quadrada} anima a evolução: a cada borda o
+perfil parte concentrado na entrada e relaxa para o quase uniforme, repetidamente, com as
+barras de $\Delta V_k$ mostrando a solicitação local entre espiras adjacentes migrando ao
+longo do enrolamento.
+
+\begin{figure}[H]
+\centering
+\animategraphics[controls,loop,autoplay,poster=last,width=0.92\linewidth]{8}{frames/manim_quadrada/frame-}{1}{91}
+\caption{Evolução temporal da distribuição de tensão sob a onda quadrada PWM de
+\SI{20}{\kilo\hertz} (neutro aterrado, $\adist = 5$): a cada borda a tensão reconcentra na
+entrada e relaxa, repetidamente. Trecho da apresentação animada.}
+\label{fig:anim-quadrada}
+\end{figure}
+
+\paragraph{Por que importa.} Essa solicitação repetitiva de $dv/dt$ sobre as primeiras
+espiras é um mecanismo de envelhecimento do isolamento em \emph{máquinas alimentadas por
+inversor}. É o que motiva as práticas de mitigação: filtros de $dv/dt$, cabos curtos e
+isolamento reforçado nas espiras de entrada.
+
+\paragraph{Validação.} A onda quadrada não tem rodada ATP direta --- o ATP não possui fonte
+de onda quadrada nativa (exigiria TACS). Usa-se \emph{validação composta}: a rede em escada
+já está validada contra o ATP no caso impulso (Seção~\ref{sec:validacao-quantitativa}), a
+fonte é validada analiticamente (\codefile{tests/test\_square\_source.py}) e a convergência
+numérica é confirmada por refino de malha ($N=20$ vs $N=40$, picos dentro de
+\SI{1.1}{\percent}). Detalhes em \codefile{RELATORIO\_VALIDACAO\_ONDA\_QUADRADA.md}.

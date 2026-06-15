@@ -25,6 +25,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from src.models.distributed_coil import DistributedCoil
+from src.sources.impulse_source import ImpulseSource
 from src.utils.simulation_config import SimulationConfig
 
 OUT = ROOT / "relatorio" / "figures"
@@ -55,3 +56,20 @@ ax.legend()
 fig.tight_layout()
 fig.savefig(OUT / "distribuicao_inicial.png", dpi=150)
 print(f"[OK] {OUT / 'distribuicao_inicial.png'}")
+
+
+# --- fonte: onda quadrada PWM de 20 kHz (2 periodos) ---
+sq = ImpulseSource(source_type="square", amplitude=1000.0,
+                   t_front=0.2e-6, frequency=20000.0)
+t_us = np.linspace(0.0, 100.0, 4000)
+v = sq.evaluate_array(t_us * 1e-6)
+fig2, ax2 = plt.subplots(figsize=(8.0, 3.0))
+ax2.plot(t_us, v, color="#ff9f45", lw=2.0)
+ax2.set_xlabel(r"tempo $t$ ($\mu$s)")
+ax2.set_ylabel(r"$v_s$ (V)")
+ax2.set_title("Fonte: onda quadrada PWM de 20 kHz (T = 50 us)")
+ax2.set_ylim(-50, 1100)
+ax2.grid(alpha=0.3)
+fig2.tight_layout()
+fig2.savefig(OUT / "onda_quadrada_fonte.png", dpi=150)
+print(f"[OK] {OUT / 'onda_quadrada_fonte.png'}")
