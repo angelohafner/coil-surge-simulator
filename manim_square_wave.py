@@ -119,7 +119,7 @@ class SquareWavePresentation(SurgePresentation):
         self.play(Create(axes), FadeIn(x_label), FadeIn(y_label), run_time=0.9)
         self.play(Create(graph), run_time=1.8)
         self.play(FadeIn(facts), run_time=0.8)
-        self.wait(1.3)
+        self.wait(2.3)
         self.clear()
 
     # ------------------------------------------------------------------
@@ -139,7 +139,7 @@ class SquareWavePresentation(SurgePresentation):
         self.play(FadeIn(heading), run_time=0.8)
         self.play(FadeIn(ladder, shift=UP * 0.2), run_time=1.2)
         self.play(FadeIn(note), run_time=0.6)
-        self.wait(1.2)
+        self.wait(2.2)
         self.clear()
 
     # ------------------------------------------------------------------
@@ -185,7 +185,7 @@ class SquareWavePresentation(SurgePresentation):
         self.play(Create(uniform), FadeIn(uni_label), run_time=0.8)
         self.play(Create(sinh_curve), run_time=1.6)
         self.play(FadeIn(entrance, shift=UP * 0.1), run_time=0.8)
-        self.wait(1.4)
+        self.wait(2.4)
         self.clear()
 
     # ------------------------------------------------------------------
@@ -359,7 +359,7 @@ class SquareWavePresentation(SurgePresentation):
             self.remove(pulse)
             self.play(Indicate(entrance_hl, color=RED, scale_factor=1.22), run_time=0.4)
         self.play(FadeIn(bullets, shift=UP * 0.1), run_time=0.8)
-        self.wait(1.4)
+        self.wait(2.4)
         self.clear()
 
 
