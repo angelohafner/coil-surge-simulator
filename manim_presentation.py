@@ -514,11 +514,25 @@ class SurgePresentation(Scene):
         self._base_cfg = None
         self._dist_cache = None
 
+        self._time_scale = 2.0          # stretch every scene below 2x ...
         self.opening_scene()
         self.source_scene()
         self.model_scene(termination="grounded")
         self.initial_distribution_scene()
+        self._time_scale = 1.0          # ... except the time-domain scene
         self.grounded_return_scene(clear_after=False)
+
+    def play(self, *args, **kwargs):
+        # Scale animation duration by self._time_scale (default 1.0) so
+        # construct() can slow the non-temporal scenes without editing every
+        # run_time.  The time-domain scene runs at _time_scale = 1.0.
+        scale = getattr(self, "_time_scale", 1.0)
+        if scale != 1.0:
+            kwargs["run_time"] = kwargs.get("run_time", 1.0) * scale
+        super().play(*args, **kwargs)
+
+    def wait(self, duration: float = 1.0, *args, **kwargs):
+        super().wait(duration * getattr(self, "_time_scale", 1.0), *args, **kwargs)
 
     @staticmethod
     def time_window_end_us(data: NodeVoltageData, requested_end_us: float) -> float:
@@ -1400,8 +1414,6 @@ class SurgePresentation(Scene):
             )
             return DashedVMobject(ref, num_dashes=26)
         uniform_ref = always_redraw(make_uniform_ref)
-        uniform_ref_label = Text("uniform (final)", font_size=14, color=MUTED)
-        uniform_ref_label.move_to(axes.c2p(70.0, y_limit * 0.42))
 
         percentage_row = self.make_dynamic_local_percentage_row(
             axes,
@@ -1439,7 +1451,6 @@ class SurgePresentation(Scene):
         )
         ground_marker = VGroup(ground_dot, ground_leader, ground_label)
         source_label = VGroup(
-            Text("source input", font_size=15, color=ORANGE),
             MathTex(rf"\alpha = {TIME_DOMAIN_ALPHA:.0f}", font_size=20, color=CYAN),
         ).arrange(DOWN, aligned_edge=LEFT, buff=0.1)
         source_label.move_to(axes.c2p(13.0, y_limit * 0.72))
@@ -1447,7 +1458,6 @@ class SurgePresentation(Scene):
         self.play(FadeIn(heading), Create(axes), FadeIn(labels), run_time=1.0)
         self.play(
             FadeIn(uniform_ref),
-            FadeIn(uniform_ref_label),
             FadeIn(profile),
             FadeIn(percentage_row),
             FadeIn(time_label),
