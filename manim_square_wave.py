@@ -282,10 +282,12 @@ class SquareWavePresentation(SurgePresentation):
             run_time=0.8,
         )
         # animacao lenta (48 s para a mesma janela de 150 us): ~52 ns/frame,
-        # cerca de um ponto da simulacao (dt=50 ns) por frame de video
+        # cerca de um ponto da simulacao (dt=50 ns) por frame de video.
+        # Classes de previa podem encurtar via self.evolution_run_time.
         self.play(
             tracker.animate.set_value(end_us),
-            run_time=EVOLUTION_RUN_TIME_S, rate_func=linear,
+            run_time=getattr(self, "evolution_run_time", EVOLUTION_RUN_TIME_S),
+            rate_func=linear,
         )
         self.wait(0.6)
         self.clear()
@@ -383,4 +385,16 @@ class SquareEvolutionPreview(SquareWavePresentation):
         self.camera.background_color = BACKGROUND
         self.factory = VisualFactory()
         self.results, self.cfg, self.source = simulate_square()
+        self.evolution_scene()
+
+
+class SquareEvolutionShort(SquareWavePresentation):
+    """Evolucao temporal CURTA (9 s) para os frames embutidos no relatorio LaTeX:
+        manim -qm manim_square_wave.py SquareEvolutionShort"""
+
+    def construct(self) -> None:
+        self.camera.background_color = BACKGROUND
+        self.factory = VisualFactory()
+        self.results, self.cfg, self.source = simulate_square()
+        self.evolution_run_time = 9.0
         self.evolution_scene()
