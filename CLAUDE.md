@@ -29,7 +29,11 @@ Há ainda uma apresentação **análoga para onda quadrada PWM de 20 kHz**
 mini-surto que reconcentra a tensão na entrada (mesma `sinh`, α=5) — o estresse
 repetitivo de isolamento em máquinas alimentadas por inversor. Reutiliza a
 `VisualFactory`/helpers de `manim_presentation.py` (herda `SurgePresentation`) sem
-modificá-lo, e usa a fonte `source_type="square"` do `ImpulseSource`.
+modificá-lo, e usa a fonte `source_type="square"` do `ImpulseSource`. A onda quadrada
+**não** tem validação ATP direta (o ATP não tem fonte de onda quadrada nativa — exigiria
+TACS); usa-se **validação composta** (rede já validada por ATP no impulso × fonte validada
+analiticamente × convergência numérica N=20 vs N=40), documentada em
+`RELATORIO_VALIDACAO_ONDA_QUADRADA.md`.
 
 ## Dois casos físicos (não confundir)
 
@@ -82,7 +86,9 @@ cd relatorio && latexmk -pdf relatorio.tex
   gerado por execução bem-sucedida do `tpbigG.exe` (default
   `C:\ATP\ATP\GNUATP\tpbigG.exe`, ou via `--atp-exe`/`ATP_EXE`). O deck ATP usa
   **formato de coluna fixa** (BUS1 3-8, BUS2 9-14, R 27-32, L 33-38, C 39-44) — um campo
-  fora de coluna causa `KILL`. Por isso o deck é gerado por script.
+  fora de coluna causa `KILL`. Por isso o deck é gerado por script. A validação cruzada do
+  gerador está em `RELATORIO_VALIDACAO_ATP_GERADOR.md` (picos ≤0,03 %); a da onda quadrada,
+  por composição, em `RELATORIO_VALIDACAO_ONDA_QUADRADA.md`.
 - **Mensagens de commit sem acentuação** (padrão do histórico do projeto).
 - **Animações do PDF:** cenas standalone `InitialDistributionScene` e
   `GroundedReturnPreview` (Manim) → mp4 720p → frames PNG (`ffmpeg`, fps baixo) →

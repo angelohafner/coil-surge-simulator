@@ -424,6 +424,13 @@ manim manim_square_wave.py SquareWavePresentation            # 1080p60
 manim -ql manim_square_wave.py SquareEvolutionPreview        # just the time-domain slide
 ```
 
+**Validation (composite).** The square-wave case has no *direct* ATP run — ATP has no
+native square-wave source (it would require TACS). It relies on composite validation: the
+ladder network is already cross-validated against ATP in the impulse case, the
+`source_type="square"` waveform is validated analytically
+(`tests/test_square_source.py`), and a discretisation check (N = 20 vs N = 40, peaks within
+1.1 %) confirms numerical convergence. Details in `RELATORIO_VALIDACAO_ONDA_QUADRADA.md`.
+
 ---
 
 ## Physical interpretation of key results
@@ -483,6 +490,9 @@ manim -ql manim_square_wave.py SquareEvolutionPreview        # just the time-dom
 | Discretisation convergence | `tests/test_model_physics.py` | peak steps 110 → 75 → 14 V (N 8→64) |
 | Matched termination | `tests/test_model_physics.py` | no doubling at R_term = Z₀ (Pi and T) |
 | Independent solver (ATP) | `scripts/compare_python_atp.py` | peaks ≤ 0.03 %, window error ≤ 1.1 % |
+| Initial distribution vs sinh theory | `tests/test_initial_distribution.py` | matches sinh/cosh, error < 5×10⁻³ |
+| Square-wave source | `tests/test_square_source.py` | period, amplitude, dv/dt, periodicity; double_exp/ramp_exp regression intact |
+| Square-wave response (composite) | N = 20 vs N = 40; `RELATORIO_VALIDACAO_ONDA_QUADRADA.md` | network via ATP + analytic source; peaks converge within 1.1 % |
 
 ---
 
