@@ -1,27 +1,40 @@
-\section{Animacoes em GIF e incorporacao no PDF}
+\section{Evolução no tempo: animações}
+\label{sec:animacoes}
 
-Os GIFs originais em \codefile{output/gifs} foram convertidos para sequencias de frames PNG dentro de \codefile{relatorio/frames}, usando \codefile{ffmpeg}. Nesta revisao, a animacao incorporada ao PDF foi atualizada para o caso Pi com retorno aterrado: a fonte de surto fica entre o no de referencia e a entrada da bobina, e o terminal final da bobina retorna diretamente ao mesmo no de referencia. Assim, a animacao documenta a condicao solicitada de fim da bobina conectado ao no comum com a fonte, em vez de enfatizar apenas a extremidade aberta.
+As animações a seguir são \emph{trechos da apresentação} gerada pela mesma simulação (os rótulos
+internos estão em inglês). Elas usam o pacote \codefile{animate}: em leitores compatíveis (p.\,ex.\
+Adobe Acrobat) reproduzem-se com os controles; em leitores simples, aparece apenas o primeiro quadro.
 
-A incorporacao usa o pacote \codefile{animate}. Em visualizadores compativeis, como Adobe Acrobat Reader, as figuras podem ser reproduzidas com controles. Em visualizadores simples, o PDF pode exibir apenas um quadro estatico.
+\subsection{A distribuição inicial e o efeito de \texorpdfstring{$\alpha$}{alpha}}
 
-\subsection{Onda viajante com retorno ao no comum}
-
-\begin{figure}[H]
-\centering
-\animategraphics[controls,loop,autoplay,width=0.90\linewidth]{5}{frames/voltage_wave_grounded/frame-}{1}{75}
-\caption{Animacao da distribuicao de tensao ao longo da bobina no modelo Pi com terminal final conectado ao no de referencia. A entrada recebe o surto e a extremidade em 100\% permanece presa ao potencial comum da fonte.}
-\label{fig:anim-grounded-wave}
-\end{figure}
-
-A Figura~\ref{fig:anim-grounded-wave} mostra que a resposta deixa de ser a mesma do terminal aberto. No caso aberto, a corrente terminal nula favorece reflexao de tensao com mesmo sinal e elevacao da tensao na extremidade. No caso com retorno ao no comum, o terminal final e imposto em \SI{0}{V}; por isso a informacao mais importante passa a ser a distribuicao interna de tensao ao longo do enrolamento.
-
-\subsection{Mapa de calor animado do caso aterrado}
+A Figura~\ref{fig:anim-dist} varre o parâmetro de distribuição \(\adist\) e mostra como o perfil inicial
+deixa de ser a reta uniforme e passa a se concentrar na entrada à medida que \(\adist\) cresce, até o
+valor \(\adist=5\) da máquina estudada.
 
 \begin{figure}[H]
 \centering
-\animategraphics[controls,loop,autoplay,width=0.94\linewidth]{5}{frames/heatmap_grounded/frame-}{1}{75}
-\caption{Mapa de calor animado do modelo Pi com terminal final conectado ao no comum com a fonte. O cursor temporal relaciona a distribuicao instantanea com o historico posicao-tempo.}
-\label{fig:anim-grounded-heatmap}
+\animategraphics[controls,loop,autoplay,poster=last,width=0.92\linewidth]{6}{frames/manim_dist_inicial/frame-}{1}{81}
+\caption{Varredura do parâmetro \(\adist\): a distribuição inicial de tensão passa da reta uniforme
+(\(\adist\) pequeno) ao perfil concentrado na entrada (\(\adist\) grande). Trecho da apresentação
+animada.}
+\label{fig:anim-dist}
 \end{figure}
 
-A Figura~\ref{fig:anim-grounded-heatmap} complementa a animacao da onda viajante porque mostra o comportamento no plano tempo--posicao. A borda em 100\% permanece vinculada ao no de referencia, enquanto os nos internos respondem ao impulso aplicado na entrada. Essa visualizacao torna mais direta a comparacao conceitual com o caso aberto: muda-se a condicao de contorno, mudam-se a reflexao e a distribuicao de solicitacao dieletrica.
+\subsection{Do perfil concentrado ao uniforme (neutro aterrado)}
+
+A Figura~\ref{fig:anim-evol} mostra a evolução no tempo para \(\adist=5\): a tensão parte do perfil
+inicial concentrado (Equação~\eqref{eq:sinh}) e relaxa para uma distribuição quase uniforme, presa a
+zero no neutro aterrado. A régua inferior acompanha o gradiente local \(\Delta V_k\) entre seções
+adjacentes — a grandeza ligada à solicitação dielétrica \emph{turn-to-turn}.
+
+\begin{figure}[H]
+\centering
+\animategraphics[controls,loop,autoplay,poster=last,width=0.92\linewidth]{8}{frames/manim_evolucao/frame-}{1}{90}
+\caption{Evolução temporal da distribuição de tensão no enrolamento aterrado (\(\adist=5\)): do perfil
+inicial concentrado ao perfil final quase uniforme. Trecho da apresentação animada.}
+\label{fig:anim-evol}
+\end{figure}
+
+A leitura conjunta das duas animações resume o fenômeno: \(\adist\) fixa \emph{quão} concentrada começa
+a distribuição, e a indutância governa \emph{como} ela relaxa no tempo — com sobretensões internas
+transitórias ao longo do caminho.

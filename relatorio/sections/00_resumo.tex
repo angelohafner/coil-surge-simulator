@@ -1,7 +1,22 @@
 \section{Resumo}
 
-Este relatório documenta o projeto Python em \projectpath, que simula a resposta de uma bobina distribuída quando submetida a um surto de tensão do tipo impulso atmosférico. O estudo combina três dimensões: o modelo físico de engenharia elétrica, a implementação numérica em Python e um caso equivalente em ATP/EMTP no arquivo \codefile{surto\_bobina.atp}.
+Este relatório descreve \emph{como a tensão de um surto se distribui ao longo do enrolamento de um
+gerador síncrono} com o neutro solidamente aterrado. Quando uma frente de onda rápida — o impulso
+atmosférico padrão \SI{1.2}{\micro\second}/\SI{50}{\micro\second} — atinge a entrada da máquina, o
+enrolamento não responde como uma única indutância concentrada: no primeiro instante ele se comporta
+como uma \emph{rede capacitiva}, e a tensão se concentra de forma acentuada nas primeiras espiras.
 
-O caso base representa a bobina como uma escada Pi com \Nsec{} seções, resistência série total de \SI{5}{\ohm}, indutância total de \SI{0.01}{H} e capacitância total para terra de \SI{1e-9}{F}. A fonte de excitação é uma onda dupla exponencial ajustada para aproximadamente \SI{1}{kV} de pico, frente de \SI{1.2}{\micro\second} e cauda de \SI{50}{\micro\second}. A janela principal de cálculo e figuras estáticas é de \SI{20}{\micro\second}, suficiente para mostrar a frente, a propagação inicial e a primeira reflexão dominante. Essa forma de impulso está associada a ensaios de alta tensão e a solicitações atmosféricas padronizadas \cite{kuffel2000,iec60060}.
+O enrolamento é representado por uma escada de \Nsec{} seções com resistência e indutância série
+(\Rsec, \Lsec), capacitância para o núcleo aterrado (\Cg, \emph{shunt}) e capacitância entre espiras
+(\Cs, \emph{série}). A razão entre as duas capacitâncias define o parâmetro de distribuição
+\(\adist = \sqrt{\Cg/\Cs}\), que controla quão desigual é a repartição inicial da tensão. Para a
+máquina estudada adota-se \(\adist = 5\).
 
-O foco técnico está na propagação da onda ao longo do enrolamento, nas reflexões produzidas pela terminação em circuito aberto, no amortecimento pela resistência série, na distribuição de tensão entre seções e nos gradientes que podem representar solicitação dielétrica local. A interpretação usa conceitos clássicos de transitórios eletromagnéticos e ondas viajantes \cite{greenwood1991}, além do contexto de simulação EMT/ATP \cite{dommel1969,long1990,atpdrawhelp}.
+A história física tem dois instantes-chave. Em \(t = 0^+\), a distribuição é capacitiva e fortemente
+não uniforme, \(v(x)/V_0 = \sinh\!\big(\adist(1-x)\big)/\sinh(\adist)\), com a entrada solicitada por
+um fator \(\adist\coth\adist \approx 5\) acima da média. Depois, a indutância entra em ação e a
+distribuição relaxa para um perfil quase uniforme, preso a zero no neutro aterrado. É essa
+\emph{transição do perfil concentrado para o uniforme} que dimensiona o isolamento de entrada e que
+este relatório documenta, com animações geradas a partir da simulação. Os resultados foram validados
+contra a solução analítica clássica de surtos em enrolamentos \cite{greenwood1991} e por uma simulação
+independente em ATP/EMTP \cite{dommel1969}.

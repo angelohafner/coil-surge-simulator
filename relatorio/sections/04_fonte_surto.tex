@@ -1,15 +1,20 @@
-\section{Fonte de surto}
+\section{A fonte de surto (1,2/50\,\texorpdfstring{$\mu$}{u}s)}
+\label{sec:fonte}
 
-A fonte principal é uma dupla exponencial:
+A excitação é o impulso atmosférico padrão, modelado por uma dupla exponencial:
 
 \begin{equation}
-V(t) = V_{\mathrm{pico}} K
-\left(e^{-\alpha t} - e^{-\beta t}\right),
-\qquad t \ge 0.
+\Vsrc = V_{\mathrm{pico}}\,K\left(e^{-a t} - e^{-b t}\right), \qquad t \ge 0,
 \end{equation}
 
-No código, \(\alpha=\ln(2)/T_2\) controla a cauda e \(\beta=3/T_1\) controla a frente. Para \(T_1=\SI{1.2}{\micro\second}\) e \(T_2=\SI{50}{\micro\second}\), o projeto usa \(\alpha \approx \SI{1.3863e4}{s^{-1}}\) e \(\beta \approx \SI{2.5e6}{s^{-1}}\). A constante \(K\) normaliza a curva para que o pico seja igual a \codefile{V\_amplitude}.
+em que \(a = \ln(2)/T_2\) controla a cauda e \(b = 3/T_1\) controla a frente. Para
+\(T_1 = \SI{1.2}{\micro\second}\) (tempo de frente) e \(T_2 = \SI{50}{\micro\second}\) (tempo de cauda),
+tem-se \(a \approx \SI{1.3863e4}{s^{-1}}\) e \(b \approx \SI{2.5e6}{s^{-1}}\); a constante \(K\)
+normaliza o pico para \(V_{\mathrm{pico}} \approx \SI{1}{kV}\). É a forma clássica de ensaio de impulso
+de alta tensão \cite{kuffel2000,iec60060}.
 
-Essa escolha é adequada ao objetivo do estudo porque a onda 1.2/50 us é uma forma clássica de impulso de alta tensão. Kuffel, Zaengl e Kuffel descrevem o impulso atmosférico padrão como uma onda aperiódica que atinge o pico em aproximadamente \SI{1.2}{\micro\second} e cai à metade em cerca de \SI{50}{\micro\second} \cite{kuffel2000}. A norma IEC 60060-1 também fornece o contexto normativo para técnicas de ensaio de alta tensão e parâmetros de impulso \cite{iec60060}.
-
-No circuito, a frente rápida injeta componentes de alta frequência. Essas componentes enxergam a capacitância distribuída de modo mais intenso, produzindo distribuição inicial de tensão não uniforme. Esse é o ponto central do estudo: a tensão aplicada no terminal não se reparte de maneira trivial ao longo das seções. A resposta depende da interação entre indutância, capacitância, resistência, topologia e condição de contorno.
+O que torna esse surto crítico para um enrolamento não é a amplitude, e sim a \emph{frente rápida}: os
+\SI{1.2}{\micro\second} de subida injetam um espectro de alta frequência que enxerga o enrolamento como
+uma rede capacitiva. É essa frente que produz a distribuição inicial não uniforme analisada nas seções
+seguintes; a cauda de \SI{50}{\micro\second} apenas sustenta a tensão enquanto a redistribuição
+interna ocorre.

@@ -1,61 +1,10 @@
 \begin{figure}[H]
 \centering
-\ctikzset{bipoles/length=0.95cm}
-\resizebox{\linewidth}{!}{%
-\begin{circuitikz}[american voltages, transform shape]
-  \coordinate (srcb) at (-2.20,0.35);
-  \coordinate (srct) at (-2.20,2.55);
-  \coordinate (n0)  at (0.00,2.55);
-  \coordinate (n1)  at (2.60,2.55);
-  \coordinate (n2)  at (5.20,2.55);
-  \coordinate (n3)  at (7.80,2.55);
-  \coordinate (n18) at (10.80,2.55);
-  \coordinate (n19) at (13.40,2.55);
-  \coordinate (n20) at (16.00,2.55);
-
-  \node[align=center] at (8.00,4.05)
-    {$R_{\mathrm{sec}}=0.25\,\Omega$, \quad
-     $L_{\mathrm{sec}}=0.5\,\mathrm{mH}$, \quad
-     $C_{\mathrm{sec}}=50\,\mathrm{pF}$};
-
-  \draw (srcb) node[ground]{}
-    to[V,l_={$\Vsrc$}] (srct)
-    -- (n0) node[circ,label={[xshift=-4pt]above:{$N_0$}}]{};
-  \node[left,align=center] at (srct) {entrada};
-
-  \draw (n0) to[R,l={$R_{\mathrm{sec}}$}] (1.20,2.55)
-             to[L,l={$L_{\mathrm{sec}}$}] (n1)
-             node[circ,label=above:{$N_1$}]{};
-  \draw (n1) to[R] (3.80,2.55)
-             to[L] (n2)
-             node[circ,label=above:{$N_2$}]{};
-  \draw (n2) to[R] (6.40,2.55)
-             to[L] (n3)
-             node[circ,label=above:{$N_3$}]{};
-
-  \draw[dashed] (n3) -- node[above] {$\cdots$} (n18);
-
-  \draw (n18) node[circ,label=above:{$N_{18}$}]{}
-              to[R] (12.00,2.55)
-              to[L] (n19)
-              node[circ,label=above:{$N_{19}$}]{};
-  \draw (n19) to[R] (14.60,2.55)
-              to[L] (n20)
-              node[ocirc,label=above:{$N_{20}$}]{};
-  \draw (n20) to[short] (16.85,2.55) node[right,align=left]{saída aberta\\$i(N_{20})=0$};
-
-  \draw (n0)  to[C,l^={$C_{\mathrm{sec}}/2$}] (0.00,0.65) node[ground]{};
-  \draw (n1)  to[C,l_={$C_{\mathrm{sec}}$}] (2.60,0.65) node[ground]{};
-  \draw (n2)  to[C,l_={$C_{\mathrm{sec}}$}] (5.20,0.65) node[ground]{};
-  \draw (n3)  to[C,l_={$C_{\mathrm{sec}}$}] (7.80,0.65) node[ground]{};
-  \draw (n18) to[C,l_={$C_{\mathrm{sec}}$}] (10.80,0.65) node[ground]{};
-  \draw (n19) to[C,l_={$C_{\mathrm{sec}}$}] (13.40,0.65) node[ground]{};
-  \draw (n20) to[C,l_={$C_{\mathrm{sec}}/2$}] (16.00,0.65) node[ground]{};
-
-  \draw[decorate,decoration={brace,amplitude=5pt,mirror}]
-    (0,-0.58) -- node[below=6pt] {escada Pi com $N=\Nsec$ seções discretas} (16.00,-0.58);
-\end{circuitikz}%
-}
-\caption{Circuito equivalente Pi usado no caso ATP e no cenário Python principal. Os capacitores de extremidade representam as meias capacitâncias da primeira e da última seção; a saída em \(N_{20}\) é aberta, impondo corrente terminal nula.}
+\includegraphics[width=\linewidth]{circuito_grounded.png}
+\caption{Escada equivalente do enrolamento. Cada seção tem um ramo série \(R\text{--}L\), uma
+capacitância série entre espiras \(\Cs\) (\emph{turn-to-turn}, em roxo, arqueada sobre o ramo) e uma
+capacitância shunt para o núcleo aterrado \(\Cg\) (em amarelo). A fonte de surto \(\Vsrc\) entra à
+esquerda; o neutro (terminal final) é \emph{solidamente aterrado}. É o mesmo circuito da apresentação
+animada e da validação cruzada em ATP.}
 \label{fig:circuito-pi}
 \end{figure}

@@ -1,7 +1,29 @@
 \section{Conclusão}
+\label{sec:conclusao}
 
-O projeto \projectpath{} implementa um estudo coerente de transitórios em uma bobina distribuída. A implementação Python permite montar a rede em espaço de estados, resolver a resposta no tempo, exportar grandezas numéricas e gerar visualizações que deixam visível a propagação do surto. O arquivo \codefile{surto\_bobina.atp} representa o mesmo caso principal em uma linguagem de simulação EMT consolidada e, após a correção e execução real do deck (12/06/2026), a equivalência deixou de ser apenas conceitual: a validação cruzada da Seção~\ref{sec:validacao-quantitativa} mostra picos por nó concordando dentro de \(0{,}03\,\%\) e erro pontual máximo de \(1{,}1\,\%\) na janela de interesse dielétrico.
+Sob um surto de frente rápida, o enrolamento de um gerador síncrono não se comporta como uma indutância
+concentrada: no instante inicial ele é uma rede capacitiva, e a tensão se distribui de forma
+fortemente não uniforme, concentrada nas primeiras espiras. O grau de concentração é fixado por um
+único número, \(\adist = \sqrt{\Cg/\Cs}\); para a máquina estudada, \(\adist = 5\) implica que a
+entrada é solicitada por cerca de cinco vezes o valor de uma distribuição uniforme.
 
-Do ponto de vista de engenharia elétrica, os resultados mostram que a bobina não pode ser tratada como elemento concentrado quando excitada por uma frente de \SI{1.2}{\micro\second}. A onda de tensão percorre o enrolamento, reflete na saída aberta e produz picos próximos de duas vezes a tensão de entrada. O gradiente entre seções é especialmente relevante porque se relaciona com a solicitação dielétrica local, não apenas com a tensão absoluta em relação ao terra.
+Como a barra do estator fica embutida numa ranhura de ferro aterrado, a capacitância para terra \Cg{} é
+grande — o que torna \(\adist\) elevado e a concentração severa. Esse é o mecanismo físico que justifica
+as práticas de proteção contra surto nos terminais de máquinas rotativas: para-raios e, sobretudo,
+\emph{capacitores de surto}, que reduzem a inclinação da frente que chega ao enrolamento e, portanto, a
+concentração inicial.
 
-As figuras e animações confirmam que os modelos Pi e T entregam comportamento global semelhante para o caso estudado. O cenário com retorno aterrado confirma adicionalmente que a condição de contorno muda de forma decisiva a reflexão: em vez de elevar a tensão no terminal aberto, o nó final é preso à referência e a solicitação passa a ser observada internamente. A capacitância total, por outro lado, altera a forma da propagação e precisa ser tratada como parâmetro físico sensível. Como limitação, o modelo usa 20 seções e não inclui acoplamentos capacitivos/indutivos mais detalhados entre espiras ou discos, perdas dependentes de frequência, saturação magnética ou geometrias reais de enrolamento. Ainda assim, como ferramenta de estudo, ele captura os mecanismos essenciais de onda viajante, reflexão e distribuição não uniforme de tensão.
+Para o projeto de isolamento, a conclusão prática é que \emph{o envelope de tensão durante o
+transitório} — e não o regime permanente — dimensiona a solicitação: as primeiras espiras concentram a
+tensão no instante do surto, enquanto nós internos podem exceder a tensão de entrada durante a
+redistribuição (a simulação indica pico em torno de \SI{1108}{V} a 25\,\% do enrolamento, para uma
+entrada de \SI{1}{kV}). A condição de contorno é decisiva: com o neutro solidamente aterrado, o terminal
+final é preso a zero e a solicitação relevante é \emph{interna} — diferentemente do caso de neutro
+isolado, em que a reflexão elevaria a tensão na extremidade.
+
+As afirmações deste relatório repousam sobre duas verificações independentes — a solução analítica
+\(\sinh\) para a distribuição inicial e a simulação cruzada em ATP/EMTP para a evolução completa — que
+concordam com o modelo dentro de margens estreitas. Como limitações, o modelo usa \Nsec{} seções
+uniformes e não representa a transição ranhura\,–\,cabeça de bobina, o acoplamento mútuo entre bobinas
+nem perdas dependentes da frequência; ainda assim, captura o mecanismo essencial: a distribuição inicial
+não uniforme governada por \(\adist\) e sua relaxação no tempo.

@@ -1,37 +1,53 @@
-\section{Modelo elétrico da bobina distribuída}
+\section{O modelo em escada e o parâmetro de distribuição}
+\label{sec:modelo}
 
-Em baixas frequências, uma bobina pode ser aproximada por uma indutância e uma resistência equivalentes. Em um surto rápido, essa simplificação é limitada: a capacitância do enrolamento para terra e a distribuição espacial de indutância e resistência passam a determinar como a tensão se reparte ao longo da bobina. Por isso o projeto usa uma aproximação de parâmetros distribuídos, semelhante ao tratamento de linhas por seções discretas \cite{greenwood1991}.
+Para reproduzir os fenômenos de alta frequência, o enrolamento contínuo é discretizado em \Nsec{}
+seções. Cada seção tem um ramo série \(R\text{--}L\) e dois tipos de capacitância, que são o coração
+do problema:
 
-No caso base, os parâmetros totais são divididos em \Nsec{} seções:
+\begin{itemize}
+  \item \textbf{capacitância shunt para terra} (\Cg): de cada nó para o núcleo/ferro aterrado;
+  \item \textbf{capacitância série entre espiras} (\Cs, \emph{turn-to-turn}): entre nós adjacentes.
+\end{itemize}
+
+Os parâmetros totais do caso são divididos entre as seções:
 
 \begin{align}
-R_{\mathrm{sec}} &= \frac{R_{\mathrm{total}}}{N} = \frac{5}{20} = \SI{0.25}{\ohm},\\
-L_{\mathrm{sec}} &= \frac{L_{\mathrm{total}}}{N} = \frac{0.01}{20} = \SI{0.5}{mH},\\
-C_{\mathrm{sec}} &= \frac{C_{\mathrm{total}}}{N} = \frac{10^{-9}}{20} = \SI{50}{pF}.
+R_{\mathrm{sec}} &= R_{\mathrm{total}}/N = 5/20 = \SI{0.25}{\ohm}, \\
+L_{\mathrm{sec}} &= L_{\mathrm{total}}/N = 0.01/20 = \SI{0.5}{mH}, \\
+C_{g,\mathrm{sec}} &= C_{\mathrm{total}}/N = 10^{-9}/20 = \SI{50}{pF}.
 \end{align}
 
-Na topologia Pi, os capacitores de extremidade aparecem como \(\Csec/2\), enquanto os nós internos possuem \(\Csec\), resultado da soma das duas meias capacitâncias das seções vizinhas. A Figura~\ref{fig:circuito-pi} mostra essa representação.
+A Figura~\ref{fig:circuito-pi} mostra a escada com os dois capacitores. A capacitância série
+equivalente ponta-a-ponta do enrolamento é \(C_{\mathrm{série}} = \SI{40}{pF}\); como \(N\) capacitores
+em cascata equivalem a esse total, cada ramo série vale \(C_{s,\mathrm{sec}} = N\,C_{\mathrm{série}} =
+\SI{800}{pF}\).
 
 \input{figures/circuito_tikz}
 
-Do ponto de vista físico, o ramo \(R-L\) armazena energia magnética e dissipa parte dela em resistência, enquanto o capacitor para terra armazena energia elétrica. A interação entre esses armazenamentos faz com que a perturbação de tensão não apareça instantaneamente em toda a bobina: ela se propaga como onda. A impedância de surto aproximada do conjunto é:
+\subsection{O número que controla a distribuição: \texorpdfstring{$\alpha$}{alpha}}
+
+No instante do surto, os indutores bloqueiam a corrente e a rede é puramente capacitiva. A repartição
+da tensão passa a depender de um único número adimensional, o \emph{parâmetro de distribuição}:
 
 \begin{equation}
-\Zsurge = \sqrt{\frac{L_{\mathrm{total}}}{C_{\mathrm{total}}}}
-       = \sqrt{\frac{0.01}{10^{-9}}}
-       \approx \SI{3162}{\ohm}.
+\adist = \sqrt{\dfrac{\Cg}{\Cs}} = \sqrt{\dfrac{C_{\mathrm{total}}}{C_{\mathrm{série}}}}
+       = \sqrt{\dfrac{\SI{1}{nF}}{\SI{40}{pF}}} = 5 .
+\label{eq:alpha}
 \end{equation}
 
-Uma estimativa de tempo de propagação associada ao par \(L_{\mathrm{total}}, C_{\mathrm{total}}\) é:
+Quanto maior \(\adist\), mais a tensão se concentra na entrada. O limite \(\adist \to 0\)
+(\(\Cs \gg \Cg\)) recupera a distribuição uniforme ingênua; valores altos de \(\adist\), típicos de
+máquinas com \Cg{} grande, produzem forte concentração. A teoria clássica de surtos em enrolamentos
+\cite{greenwood1991} trata exatamente dessa competição entre \Cg{} e \Cs.
 
-\begin{equation}
-\Ttravel = \sqrt{L_{\mathrm{total}}C_{\mathrm{total}}}
-         = \sqrt{0.01\cdot 10^{-9}}
-         \approx \SI{3.16}{\micro\second}.
-\end{equation}
+\subsection{Condição de contorno: neutro solidamente aterrado}
 
-A saída está em circuito aberto. Para uma onda incidente, essa condição implica corrente terminal nula e tende a produzir reflexão de tensão com mesmo sinal. A duplicação aproximada do pico na extremidade aberta é coerente com os resultados numéricos: a tensão de entrada atinge \SI{1000}{V}, enquanto a saída chega a cerca de \SI{2039}{V}. Esse valor não é uma simples regra ideal, porque a rede discreta, a resistência e a forma temporal do impulso modificam a resposta.
-
-Além do caso aberto, o simulador também executa um cenário Pi com terminação aterrada. Nesse cenário, a fonte de surto fica entre o nó de referência e a entrada da bobina, enquanto o terminal final da bobina retorna diretamente ao nó de referência. Essa condição prende a tensão do terminal final em \SI{0}{V} e serve como contraste didático para mostrar como a condição de contorno altera a reflexão e a distribuição interna de tensão.
-
-O modelo T, também implementado no projeto, desloca a capacitância de cada seção para um ponto intermediário. Em termos de engenharia, Pi e T são aproximações discretas diferentes de uma mesma estrutura distribuída. A comparação entre eles ajuda a avaliar se a interpretação física depende fortemente da topologia numérica escolhida.
+O gerador estudado tem o \textbf{neutro solidamente aterrado}: o terminal final do enrolamento é preso
+a \SI{0}{V}. Essa condição de contorno determina a forma da distribuição e a reflexão da onda. Por
+contraste, um neutro isolado (terminal aberto) levaria a uma distribuição do tipo \(\cosh\) e a uma
+quase duplicação da tensão na extremidade — comportamento conhecido do caso de saída aberta, mas que
+\emph{não} é o da máquina aqui analisada. A impedância de surto aproximada do conjunto é
+\(\Zsurge = \sqrt{L_{\mathrm{total}}/C_{\mathrm{total}}} \approx \SI{3162}{\ohm}\) e o tempo de
+propagação associado é \(\Ttravel = \sqrt{L_{\mathrm{total}}C_{\mathrm{total}}} \approx
+\SI{3.16}{\micro\second}\).

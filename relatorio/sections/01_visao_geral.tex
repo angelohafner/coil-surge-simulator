@@ -1,31 +1,27 @@
-\section{Visão geral do projeto}
+\section{O problema: como a tensão se distribui sob um surto?}
 
-O projeto implementa um simulador de resposta a surto em bobina distribuída. A ideia central é substituir o enrolamento contínuo por uma cadeia de seções concentradas, cada uma contendo resistência, indutância e capacitância para terra. Essa discretização permite estudar fenômenos de alta frequência que um modelo puramente concentrado perderia, como atraso de propagação, reflexões na extremidade aberta e distribuição não uniforme de tensão.
+A intuição de baixa frequência sugere que, se uma tensão \(V_0\) é aplicada à entrada de um enrolamento
+de \Nsec{} seções, cada seção veria uma fração igual \(V_0/N\) — uma distribuição uniforme. Essa
+expectativa está errada para um surto.
 
-A pasta \codefile{config} contém o caso base em \codefile{default\_case.json}. A pasta \codefile{src} contém o modelo elétrico, a fonte, o solver, o processamento de resultados e a visualização. A pasta \codefile{output} contém os CSVs, PNGs e GIFs já gerados. O arquivo \codefile{surto\_bobina.atp} descreve um caso ATP com a mesma lógica física do modelo Pi: \Nsec{} ramos série R--L, capacitores shunt para terra e uma fonte dupla exponencial aplicada no nó de entrada.
+Uma frente de \SI{1.2}{\micro\second} contém componentes de altíssima frequência. Para elas, as
+indutâncias do enrolamento são caminhos de alta impedância (\(\omega L\) grande), enquanto as
+capacitâncias são caminhos de baixa impedância (\(1/\omega C\) pequeno). No primeiro instante, portanto,
+a corrente praticamente não circula pelos ramos indutivos: a tensão se reparte pela \emph{rede
+capacitiva} formada pela capacitância entre espiras (\Cs) e pela capacitância para o núcleo aterrado
+(\Cg). O resultado é uma distribuição inicial \emph{concentrada na entrada}, muito diferente da reta
+uniforme.
 
-Os resultados numéricos são exportados como tensões nodais, correntes de seção e um resumo com picos de tensão e gradientes. Os resultados visuais incluem curvas de entrada/saída, curvas em nós selecionados, mapas de calor posição-tempo, barras de pico por nó, barras de gradiente entre nós adjacentes e animações da onda viajante.
+No caso de um \textbf{gerador síncrono}, essa distinção é especialmente importante. A barra de cobre
+fica embutida em uma ranhura de ferro aterrado, separada por poucos milímetros de isolação: isso produz
+uma capacitância para terra \Cg{} grande — frequentemente a maior capacitância do sistema. É justamente
+esse \Cg{} elevado, combinado com a capacitância série \Cs{} entre espiras, que faz a tensão de surto se
+concentrar nas primeiras espiras e que motiva a proteção de surto (para-raios e capacitores de surto)
+nos terminais da máquina.
 
-\begin{table}[H]
-\centering
-\caption{Parâmetros principais do caso padrão em \codefile{config/default\_case.json}.}
-\label{tab:parametros-caso}
-\begin{tabular}{lll}
-\toprule
-Parâmetro & Valor & Interpretação elétrica \\
-\midrule
-\codefile{n\_sections} & 20 & número de seções discretas \\
-\codefile{L\_total} & \SI{0.01}{H} & indutância total da bobina \\
-\codefile{R\_total} & \SI{5}{\ohm} & perdas série totais \\
-\codefile{C\_total} & \SI{1e-9}{F} & capacitância total para terra \\
-\codefile{model\_type} & \codefile{pi} & topologia Pi principal \\
-\codefile{source\_type} & \codefile{double\_exp} & impulso dupla exponencial \\
-\codefile{V\_amplitude} & \SI{1000}{V} & pico nominal da fonte \\
-\codefile{t\_front} & \SI{1.2}{\micro\second} & tempo de frente \\
-\codefile{t\_tail} & \SI{50}{\micro\second} & tempo de cauda \\
-\codefile{t\_total} & \SI{20}{\micro\second} & janela principal de simulação \\
-\codefile{dt} & \SI{10}{ns} & passo de amostragem dos resultados \\
-\codefile{termination} & \codefile{open} & extremidade aberta \\
-\bottomrule
-\end{tabular}
-\end{table}
+Este documento segue a história física na ordem em que ela acontece: a forma do surto aplicado
+(Seção~\ref{sec:fonte}); o modelo em escada e o parâmetro \(\adist\) que governa a desigualdade
+(Seção~\ref{sec:modelo}); a distribuição inicial em \(t=0^+\) e sua evolução no tempo
+(Seções~\ref{sec:distribuicao} e \ref{sec:animacoes}); e o que isso significa para o isolamento
+(Seção~\ref{sec:conclusao}). O neutro é tomado como \emph{solidamente aterrado}, condição de contorno
+que prende a tensão do terminal final em zero.

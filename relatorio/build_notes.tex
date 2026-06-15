@@ -1,19 +1,30 @@
 \section{Notas de construção do PDF}
 
-As figuras estáticas usadas neste relatório foram copiadas de \codefile{output/} (raiz do repositório) para \codefile{figures/output}, com nomes normalizados por origem: prefixo \codefile{pi\_} para o modelo Pi, \codefile{t\_} para o modelo T, prefixo \codefile{grounded\_} para o cenário Pi com retorno aterrado, prefixo \codefile{python\_} para as imagens Plotly geradas pelo simulador Python nos nós do caso ATP e \codefile{atp\_} \emph{exclusivamente} para figuras que contêm dados reais do ATP (hoje, a comparação quantitativa \codefile{atp\_comparacao\_python\_atp.png}, gerada por \codefile{scripts/compare\_python\_atp.py}). Na revisão de 12/06/2026, as antigas \codefile{atp\_grafico\_*.png} foram renomeadas para \codefile{python\_grafico\_*.png} por serem saída do simulador Python, não do ATP.
+\paragraph{Figuras estáticas.} A Figura~\ref{fig:circuito-pi} é o diagrama da escada com capacitância
+série, copiado de \codefile{assets/tikz\_ladder\_grounded\_circuit.png} (mesmo desenho usado na
+apresentação). A Figura~\ref{fig:dist-inicial} é gerada por \codefile{scripts/gen\_figuras\_relatorio.py}
+a partir do modelo (\codefile{initial\_voltage\_distribution}). A Figura~\ref{fig:atp-comparacao} é a
+saída de \codefile{scripts/compare\_python\_atp.py} para o caso do gerador, copiada de
+\codefile{output/atp\_gerador/comparacao\_python\_atp.png} (contém dados reais do ATP).
 
-Um antigo \codefile{output/atp/screenshot.png} não foi usado no corpo do relatório porque a captura disponível não representava a simulação (mostrava uma apresentação de slides); o arquivo foi removido de \codefile{output/} na revisão de 12/06/2026.
+\paragraph{Animações.} As animações (Seção~\ref{sec:animacoes}) são trechos das cenas
+\codefile{InitialDistributionScene} e \codefile{GroundedReturnPreview} da apresentação
+\codefile{manim\_presentation.py}, renderizadas em 720p. Cada \codefile{.mp4} foi convertido em uma
+sequência de frames PNG com \codefile{ffmpeg}, incorporada via \codefile{animate}
+(\codefile{animategraphics}). Para manter o PDF em tamanho razoável, os frames são amostrados a baixo
+\emph{fps} e largura de \SI{800}{px}: \codefile{frames/manim\_dist\_inicial} (\(\approx\)81 frames, \SI{6}{fps})
+e \codefile{frames/manim\_evolucao} (\(\approx\)90 frames, \SI{8}{fps}). A numeração começa em
+\codefile{frame-1.png} (sem zero-padding), faixa esperada por \codefile{animategraphics}.
 
-Os GIFs foram convertidos em frames PNG dentro de \codefile{frames}. Cada animação usada no PDF possui 75 frames, extraídos a \SI{5}{fps} e redimensionados para largura de 720 pixels. Na revisão de 12/06/2026, a seção de animações passou a usar os GIFs \codefile{voltage\_wave\_grounded.gif} e \codefile{heatmap\_grounded.gif}, que representam o caso Pi com terminal final conectado ao nó comum com a fonte. Essa escolha preserva o comportamento animado e evita que o PDF fique excessivamente grande. A animação no PDF depende de suporte do visualizador. Em leitores sem suporte a JavaScript/animações PDF, pode aparecer apenas um quadro estático.
-
-Comando usado para extrair frames:
+Comando de extração (largura \SI{800}{px}, exemplo da animação de evolução):
 
 \begin{verbatim}
-ffmpeg -y -i <arquivo.gif> ^
-  -vf "fps=5,scale=720:-1:flags=lanczos" ^
-  frame-%03d.png
+ffmpeg -y -i GroundedReturnPreview.mp4 ^
+  -vf "fps=8,scale=800:-1:flags=lanczos" ^
+  frames/manim_evolucao/frame-%d.png
 \end{verbatim}
 
-Para \codefile{voltage\_wave\_grounded.gif} e \codefile{heatmap\_grounded.gif}, os 75 frames usados pelo PDF foram amostrados de maneira uniforme a partir dos 101 quadros gerados pelo GIF, preservando a faixa \codefile{frame-1.png} a \codefile{frame-75.png} esperada por \codefile{animategraphics}.
-
-Sistema bibliográfico usado: BibTeX com estilo \codefile{IEEEtran}.
+\paragraph{Compilação.} \codefile{latexmk -pdf relatorio.tex} (pdfLaTeX). O pacote \codefile{animate}
+embute os frames; nenhum \codefile{shell-escape} é necessário. A animação depende de suporte do
+visualizador; em leitores sem suporte, aparece o primeiro quadro. Sistema bibliográfico: BibTeX com
+estilo \codefile{IEEEtran}.
