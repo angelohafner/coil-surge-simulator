@@ -178,7 +178,7 @@ class SquareWavePresentation(SurgePresentation):
         uni_label = Text("uniform (low-frequency guess)", font_size=18, color=MUTED)
         uni_label.next_to(axes.c2p(64, 38), UR, buff=0.05)
         entrance = Text("entrance turns carry most of it", font_size=20, color=ORANGE)
-        entrance.next_to(axes.c2p(20, 72), UR, buff=0.1)
+        entrance.move_to(axes.c2p(52, 80))
 
         self.play(FadeIn(heading), FadeIn(formula), run_time=1.0)
         self.play(Create(axes), FadeIn(x_label), FadeIn(y_label), run_time=0.8)
@@ -291,33 +291,75 @@ class SquareWavePresentation(SurgePresentation):
         self.clear()
 
     # ------------------------------------------------------------------
-    # 6. Conclusion
+    # 6. Conclusion (esquema animado + poucos bullets)
     # ------------------------------------------------------------------
+    def _mini_square(self, width: float, height: float, n_cycles: int = 2) -> VMobject:
+        """Pequena onda quadrada (corners) para o icone do inversor."""
+        seg = width / (2 * n_cycles)
+        x = -width / 2.0
+        y_hi, y_lo = height / 2.0, -height / 2.0
+        level = y_hi
+        pts = [np.array([x, level, 0.0])]
+        for _ in range(2 * n_cycles):
+            x += seg
+            pts.append(np.array([x, level, 0.0]))
+            level = y_lo if level == y_hi else y_hi
+            pts.append(np.array([x, level, 0.0]))
+        vm = VMobject(stroke_color=CYAN, stroke_width=3.0)
+        vm.set_points_as_corners(pts)
+        return vm
+
     def conclusion_scene(self) -> None:
         heading = self.factory.heading(
             "Why It Matters: Inverter-Fed Insulation",
-            "Repetitive switching stress on the entrance-turn insulation",
+            "Each PWM edge stresses the entrance turns -- 40000 times per second",
         )
 
+        # esquema: inversor PWM --cabo--> bobina, com a entrada destacada
+        inv_box = RoundedRectangle(
+            width=1.7, height=1.25, corner_radius=0.12,
+            stroke_color=ORANGE, stroke_width=2.6,
+            fill_color=BACKGROUND, fill_opacity=0.92,
+        )
+        inv_wave = self._mini_square(1.05, 0.5).move_to(inv_box.get_center())
+        inverter = VGroup(inv_box, inv_wave).move_to(LEFT * 4.4 + UP * 0.7)
+        inv_caption = Text("PWM inverter", font_size=18, color=ORANGE).next_to(inverter, UP, buff=0.14)
+        rate = MathTex(r"40\,000\times/\mathrm{s}", font_size=22, color=YELLOW).next_to(inverter, DOWN, buff=0.18)
+
+        coil = self.factory.coil(width=3.5, height=1.0, turns=9).move_to(RIGHT * 2.3 + UP * 0.7)
+        coil_caption = Text("winding", font_size=18, color=CYAN).next_to(coil, UP, buff=0.22)
+        cable = Line(inv_box.get_right(), coil.get_left(), color=MUTED, stroke_width=3.0)
+
+        entrance_hl = Ellipse(width=1.0, height=1.35, color=RED, stroke_width=3.5)
+        entrance_hl.move_to(coil.get_left() + RIGHT * 0.45)
+        entrance_lbl = Text("entrance turns", font_size=16, color=RED).next_to(entrance_hl, DOWN, buff=0.12)
+
         bullets = VGroup(
-            Tex(r"$\bullet$~Every PWM edge crowds the voltage onto the first turns "
-                r"($\alpha = 5$).", font_size=32, color=TEXT),
-            Tex(r"$\bullet$~The impulse does it once; the $20\,$kHz square wave does it "
-                r"$40\,000\times/\mathrm{s}$.", font_size=32, color=TEXT),
-            Tex(r"$\bullet$~This repetitive $dv/dt$ stress ages the entrance-turn "
-                r"insulation.", font_size=32, color=TEXT),
-            Tex(r"$\bullet$~Mitigation: $dv/dt$ filters, short cables, reinforced "
-                r"entrance insulation.", font_size=32, color=GREEN),
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.5).next_to(heading, DOWN, buff=0.8)
+            Tex(r"Every edge crowds the voltage onto the entrance turns ($\alpha = 5$).",
+                font_size=30, color=TEXT),
+            Tex(r"Mitigation: $dv/dt$ filters, short cables, reinforced insulation.",
+                font_size=30, color=GREEN),
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.42)
         for line in bullets:
-            if line.width > 12.2:
-                line.scale_to_fit_width(12.2)
-        bullets.next_to(heading, DOWN, buff=0.8).to_edge(LEFT, buff=0.9)
+            if line.width > 12.4:
+                line.scale_to_fit_width(12.4)
+        bullets.to_edge(DOWN, buff=0.7).to_edge(LEFT, buff=0.9)
 
         self.play(FadeIn(heading), run_time=0.8)
-        for line in bullets:
-            self.play(FadeIn(line, shift=RIGHT * 0.15), run_time=0.6)
-        self.wait(1.6)
+        self.play(
+            FadeIn(inverter), FadeIn(inv_caption), FadeIn(rate),
+            Create(cable), FadeIn(coil), FadeIn(coil_caption),
+            run_time=1.2,
+        )
+        self.play(Create(entrance_hl), FadeIn(entrance_lbl), run_time=0.6)
+        for _ in range(3):
+            pulse = Dot(color=CYAN, radius=0.10).move_to(cable.get_start())
+            self.add(pulse)
+            self.play(MoveAlongPath(pulse, cable), run_time=0.55, rate_func=linear)
+            self.remove(pulse)
+            self.play(Indicate(entrance_hl, color=RED, scale_factor=1.22), run_time=0.4)
+        self.play(FadeIn(bullets, shift=UP * 0.1), run_time=0.8)
+        self.wait(1.4)
         self.clear()
 
 
