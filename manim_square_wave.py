@@ -40,7 +40,9 @@ from src.utils.simulation_config import SimulationConfig
 SQUARE_FREQ_HZ = 20_000.0     # 20 kHz  -> periodo T = 50 us
 SQUARE_T_RISE_S = 0.2e-6      # tempo de borda (dv/dt = A/t_rise)
 SQUARE_WINDOW_US = 150.0      # 3 periodos
-SQUARE_DT_S = 5e-8            # passo de reporte
+SQUARE_DT_S = 5e-8            # passo de reporte (50 ns)
+EVOLUTION_RUN_TIME_S = 48.0   # varredura temporal: 48 s p/ 150 us a 60 fps =>
+                              # ~52 ns/frame ~= 1 ponto da simulacao (50 ns) por frame
 ALPHA = TIME_DOMAIN_ALPHA     # 5 (mesmo da bobina do surto aterrado)
 
 
@@ -76,71 +78,48 @@ class SquareWavePresentation(SurgePresentation):
         self.factory = VisualFactory()
         self.results, self.cfg, self.source = simulate_square()
 
-        self.title_scene()
-        self.source_scene()
+        self.intro_source_scene()
         self.circuit_scene()
         self.per_edge_scene()
         self.evolution_scene()
         self.conclusion_scene()
 
     # ------------------------------------------------------------------
-    # 1. Title
+    # 1. Intro + source (slides 1+2 fundidos): a 20 kHz PWM square wave
     # ------------------------------------------------------------------
-    def title_scene(self) -> None:
+    def intro_source_scene(self) -> None:
         heading = self.factory.heading(
             "PWM Square Wave on a Winding",
-            "Each switching edge is a surge -- repeated 40000 times per second",
+            "The output of a PWM inverter: every switching edge is a surge",
         )
-        # uma onda quadrada estilizada
-        axes = Axes(
-            x_range=[0, 4, 1], y_range=[-0.3, 1.4, 1],
-            x_length=8.0, y_length=2.2,
-            axis_config={"include_ticks": False, "stroke_opacity": 0.0},
-        ).move_to(DOWN * 0.4)
-        ts = np.linspace(0, 4, 2000)
-        sq = 0.5 * (1 + np.sign(np.sin(2 * np.pi * ts)))
-        wave = self.factory.line_graph(axes, ts, sq, CYAN, 4.0)
-        self.play(FadeIn(heading, shift=DOWN * 0.2), run_time=1.0)
-        self.play(Create(wave), run_time=1.4)
-        self.wait(1.0)
-        self.clear()
 
-    # ------------------------------------------------------------------
-    # 2. Source: the 20 kHz square wave
-    # ------------------------------------------------------------------
-    def source_scene(self) -> None:
-        heading = self.factory.heading(
-            "The Source: a 20 kHz Square Wave",
-            "Fast edges (high dv/dt) carry the high-frequency content",
-        )
-        heading.to_edge(UP, buff=0.4)
+        facts = VGroup(
+            MathTex(r"f = 20\,\mathrm{kHz}", font_size=30, color=CYAN),
+            MathTex(r"T = 1/f = 50\,\mu\mathrm{s}", font_size=30, color=CYAN),
+            MathTex(r"\frac{dv}{dt} = \frac{V}{t_r},\ \ t_r = 0.2\,\mu\mathrm{s}",
+                    font_size=30, color=YELLOW),
+        ).arrange(RIGHT, buff=0.85)
+        facts.next_to(heading, DOWN, buff=0.32)
 
         t_us = np.linspace(0, 2.5 * 50.0, 4000)          # 2.5 periodos, em us
         v = self.source.evaluate_array(t_us * 1e-6)
         axes = Axes(
             x_range=[0, 125, 25], y_range=[0, 1100, 250],
-            x_length=10.0, y_length=4.2,
+            x_length=10.4, y_length=3.3,
             axis_config={"color": MUTED, "stroke_width": 2},
             tips=False,
-        ).shift(DOWN * 0.4)
+        ).next_to(facts, DOWN, buff=0.6)
         x_label = MathTex(r"t\;(\mu\mathrm{s})", font_size=24, color=MUTED)
-        x_label.next_to(axes.x_axis.get_end(), DOWN, buff=0.2)
+        x_label.next_to(axes.x_axis.get_end(), DOWN, buff=0.18)
         y_label = MathTex(r"v_s\;(\mathrm{V})", font_size=24, color=MUTED)
-        y_label.next_to(axes.y_axis.get_end(), LEFT, buff=0.2)
-        graph = self.factory.line_graph(axes, t_us, v, ORANGE, 3.2)
+        y_label.next_to(axes.y_axis.get_top(), UP, buff=0.1)
+        graph = self.factory.line_graph(axes, t_us, v, ORANGE, 3.0)
 
-        period = MathTex(r"T = 1/f = 50\,\mu\mathrm{s}", font_size=26, color=CYAN)
-        period.next_to(axes, UP, buff=0.1).shift(RIGHT * 2.2)
-        dvdt = MathTex(
-            r"\frac{dv}{dt}=\frac{V}{t_r}\;\;(t_r=0.2\,\mu\mathrm{s})",
-            font_size=26, color=YELLOW,
-        )
-        dvdt.next_to(axes.c2p(12, 1000), UR, buff=0.05)
-
-        self.play(FadeIn(heading), Create(axes), FadeIn(x_label), FadeIn(y_label), run_time=1.0)
+        self.play(FadeIn(heading, shift=DOWN * 0.15), run_time=1.0)
+        self.play(Create(axes), FadeIn(x_label), FadeIn(y_label), run_time=0.9)
         self.play(Create(graph), run_time=1.8)
-        self.play(FadeIn(period), FadeIn(dvdt), run_time=0.8)
-        self.wait(1.2)
+        self.play(FadeIn(facts), run_time=0.8)
+        self.wait(1.3)
         self.clear()
 
     # ------------------------------------------------------------------
@@ -149,14 +128,13 @@ class SquareWavePresentation(SurgePresentation):
     def circuit_scene(self) -> None:
         heading = self.factory.heading(
             "Same Winding, Same Circuit",
-            "Grounded ladder with shunt (C_g) and turn-to-turn (C_s) capacitance",
+            "Grounded ladder with shunt and turn-to-turn capacitance",
         )
-        heading.to_edge(UP, buff=0.4)
         ladder = self.factory.tikz_ladder(termination="grounded")
         ladder.scale_to_fit_width(11.0).shift(DOWN * 0.3)
-        note = Text(
-            "alpha = sqrt(C_g / C_s) = 5",
-            font_size=24, color=CYAN, weight=BOLD,
+        note = MathTex(
+            r"\alpha = \sqrt{C_g / C_s} = 5",
+            font_size=34, color=CYAN,
         ).next_to(ladder, DOWN, buff=0.5)
         self.play(FadeIn(heading), run_time=0.8)
         self.play(FadeIn(ladder, shift=UP * 0.2), run_time=1.2)
@@ -170,34 +148,40 @@ class SquareWavePresentation(SurgePresentation):
     def per_edge_scene(self) -> None:
         heading = self.factory.heading(
             "One Edge = One Surge",
-            "At every edge the voltage crowds onto the entrance: sinh(alpha(1-x))/sinh(alpha)",
+            "At every edge the voltage crowds onto the entrance turns",
         )
-        heading.to_edge(UP, buff=0.4)
 
         coil = DistributedCoil(self.cfg)
         x, v = coil.initial_voltage_distribution(v_input=1.0)   # alpha=5, aterrado
 
+        formula = MathTex(
+            r"\frac{v(x)}{V_0} = \frac{\sinh\!\big(\alpha(1-x)\big)}{\sinh(\alpha)},"
+            r"\quad \alpha = 5",
+            font_size=30, color=TEXT,
+        ).next_to(heading, DOWN, buff=0.28)
+
         axes = Axes(
             x_range=[0, 100, 25], y_range=[0, 105, 25],
-            x_length=10.0, y_length=4.2,
+            x_length=10.0, y_length=3.2,
             axis_config={"color": MUTED, "stroke_width": 2},
             tips=False,
-        ).shift(DOWN * 0.4)
+        ).next_to(formula, DOWN, buff=0.5)
         x_label = MathTex(r"x_{\mathrm{coil}}\;(\%)", font_size=24, color=MUTED)
-        x_label.next_to(axes.x_axis.get_end(), DOWN, buff=0.2)
+        x_label.next_to(axes.x_axis.get_end(), DOWN, buff=0.18)
         y_label = MathTex(r"v/V_0\;(\%)", font_size=24, color=MUTED)
-        y_label.next_to(axes.y_axis.get_end(), UP, buff=0.1)
+        y_label.next_to(axes.y_axis.get_top(), UP, buff=0.1)
 
         sinh_curve = self.factory.line_graph(axes, x * 100, v * 100, GREEN, 3.4)
         uniform = DashedLine(
             axes.c2p(0, 100), axes.c2p(100, 0), color=MUTED, stroke_width=2,
         )
         uni_label = Text("uniform (low-frequency guess)", font_size=18, color=MUTED)
-        uni_label.next_to(axes.c2p(62, 45), UR, buff=0.05)
+        uni_label.next_to(axes.c2p(64, 38), UR, buff=0.05)
         entrance = Text("entrance turns carry most of it", font_size=20, color=ORANGE)
-        entrance.next_to(axes.c2p(15, 70), UR, buff=0.1)
+        entrance.next_to(axes.c2p(20, 72), UR, buff=0.1)
 
-        self.play(FadeIn(heading), Create(axes), FadeIn(x_label), FadeIn(y_label), run_time=1.0)
+        self.play(FadeIn(heading), FadeIn(formula), run_time=1.0)
+        self.play(Create(axes), FadeIn(x_label), FadeIn(y_label), run_time=0.8)
         self.play(Create(uniform), FadeIn(uni_label), run_time=0.8)
         self.play(Create(sinh_curve), run_time=1.6)
         self.play(FadeIn(entrance, shift=UP * 0.1), run_time=0.8)
@@ -210,7 +194,7 @@ class SquareWavePresentation(SurgePresentation):
     def evolution_scene(self) -> None:
         heading = self.factory.heading(
             "Under the Pulse Train",
-            "Each edge re-crowds the entrance, then relaxes -- the dV bars show the local stress",
+            "Each edge re-crowds the entrance, then it relaxes -- repeatedly",
         )
 
         t = self.results["t"]                                    # s
@@ -297,10 +281,11 @@ class SquareWavePresentation(SurgePresentation):
             FadeIn(time_label), FadeIn(ground_marker), FadeIn(alpha_label),
             run_time=0.8,
         )
-        # metade da velocidade anterior (run_time 12 -> 24 s para a mesma janela)
+        # animacao lenta (48 s para a mesma janela de 150 us): ~52 ns/frame,
+        # cerca de um ponto da simulacao (dt=50 ns) por frame de video
         self.play(
             tracker.animate.set_value(end_us),
-            run_time=24.0, rate_func=linear,
+            run_time=EVOLUTION_RUN_TIME_S, rate_func=linear,
         )
         self.wait(0.6)
         self.clear()
@@ -311,20 +296,23 @@ class SquareWavePresentation(SurgePresentation):
     def conclusion_scene(self) -> None:
         heading = self.factory.heading(
             "Why It Matters: Inverter-Fed Insulation",
-            "Repetitive dv/dt stress on the entrance turns",
+            "Repetitive switching stress on the entrance-turn insulation",
         )
-        heading.to_edge(UP, buff=0.5)
 
         bullets = VGroup(
-            Text("- Every PWM edge crowds the voltage onto the first turns (alpha = 5).",
-                 font_size=24, color=TEXT),
-            Text("- The impulse does it once; the 20 kHz square wave does it 40000x/s.",
-                 font_size=24, color=TEXT),
-            Text("- This repetitive dv/dt stress ages the entrance-turn insulation.",
-                 font_size=24, color=TEXT),
-            Text("- Mitigation: dv/dt filters, short cables, reinforced entrance insulation.",
-                 font_size=24, color=GREEN),
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.42).next_to(heading, DOWN, buff=0.7)
+            Tex(r"$\bullet$~Every PWM edge crowds the voltage onto the first turns "
+                r"($\alpha = 5$).", font_size=32, color=TEXT),
+            Tex(r"$\bullet$~The impulse does it once; the $20\,$kHz square wave does it "
+                r"$40\,000\times/\mathrm{s}$.", font_size=32, color=TEXT),
+            Tex(r"$\bullet$~This repetitive $dv/dt$ stress ages the entrance-turn "
+                r"insulation.", font_size=32, color=TEXT),
+            Tex(r"$\bullet$~Mitigation: $dv/dt$ filters, short cables, reinforced "
+                r"entrance insulation.", font_size=32, color=GREEN),
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.5).next_to(heading, DOWN, buff=0.8)
+        for line in bullets:
+            if line.width > 12.2:
+                line.scale_to_fit_width(12.2)
+        bullets.next_to(heading, DOWN, buff=0.8).to_edge(LEFT, buff=0.9)
 
         self.play(FadeIn(heading), run_time=0.8)
         for line in bullets:
@@ -337,13 +325,13 @@ class SquareWavePresentation(SurgePresentation):
 # Cenas standalone para previa rapida (espelham as do surto)
 # ----------------------------------------------------------------------
 class SquareSourceScene(SquareWavePresentation):
-    """Apenas a forma de onda da fonte: manim -ql manim_square_wave.py SquareSourceScene"""
+    """Apenas o slide de abertura+fonte: manim -ql manim_square_wave.py SquareSourceScene"""
 
     def construct(self) -> None:
         self.camera.background_color = BACKGROUND
         self.factory = VisualFactory()
         self.results, self.cfg, self.source = simulate_square()
-        self.source_scene()
+        self.intro_source_scene()
 
 
 class SquareEvolutionPreview(SquareWavePresentation):
